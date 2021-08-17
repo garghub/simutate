@@ -17,6 +17,8 @@ options based on tasks:
 
 java -jar [target-repository]/simutate-1.0.jar simulate codebert Math
 
+java -jar [target-repository]/simutate-1.0.jar simulate codebert Math Math_1 <-- this will run simulation for only Math_1 bug and skip the rest
+
 java -jar [target-repository]/simutate-1.0.jar flatten codebert
 
 java -jar [target-repository]/simutate-1.0.jar getalltests codebert
