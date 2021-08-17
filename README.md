@@ -27,10 +27,15 @@ java -jar [target-repository]/simutate-1.0.jar abstract
 
 java -jar [target-repository]/simutate-1.0.jar unabstract
 
+-----------------------------------------------------------------------------------------------------------------------------
 
-NOTE: please do not forget to modify below variable in data.java file to specify your desired repository location
+NOTE: please do not forget to modify below variables in data.java file to specify your desired repository locations and dependencies
 
 static String dirMain = isWindows ? "C:/GitHub/mutation" : "/home/agarg/ag/mutation";
+
+static String strInitialCommandForDefects4j01 = "/home/agarg/ag/defects4j/defects4j/framework/bin/defects4j";
+
+static String strInitialCommandForsrc2abs02 = " && java -jar C:/GitHub/src2abs/src2abs-master/target/src2abs-0.1-jar-with-dependencies.jar single method ";
 
 -----------------------------------------------------------------------------------------------------------------------------
 
