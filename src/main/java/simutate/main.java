@@ -17,9 +17,9 @@ public class main {
     public static void main(String[] args) {
         try {
             //debug
-//            /*
+            /*
             args = new String[]{data.strProcessSourcePatches, "nmt"};
-//            */
+            */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
                 System.out.println("1. a task to perform (e.g. " + data.strAbstract + " / " + data.strUnabstract + " / " + data.strProcessSourcePatches
