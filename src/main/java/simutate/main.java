@@ -16,6 +16,10 @@ public class main {
      */
     public static void main(String[] args) {
         try {
+            //debug
+//            /*
+            args = new String[]{data.strProcessSourcePatches, "nmt"};
+//            */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
                 System.out.println("1. a task to perform (e.g. " + data.strAbstract + " / " + data.strUnabstract + " / " + data.strProcessSourcePatches
@@ -23,6 +27,8 @@ public class main {
                 System.out.println("NOTE: for task \"" + data.strSimulate + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
                 System.out.println("Additional 2. project name to perform simulation for (e.g. Cli)");
+                System.out.println("Optional parameters -");
+                System.out.println("Optional 1. bug id to perform simulation for (e.g. Cli_1 / Mockito_2 / ...)");
                 System.out.println("and");
                 System.out.println("Also for tasks \"" + data.strFlatten + "\", \"" + data.strProcessSourcePatches + "\", and \"" + data.strGetAllTests 
                         + "\", please pass below as additional arguments and try again");

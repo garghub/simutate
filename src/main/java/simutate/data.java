@@ -98,6 +98,7 @@ public class data {
     static String strToLookInPatchForFileLocation = "diff --git";
     static String strProjectNameForSimulation;
     static String strAllProjectsForSimulation = "all";
+    static String dirBugId;
 
     static String dirSimulation = dirMain + "/simulation";
     static String strAllTests = "alltests";

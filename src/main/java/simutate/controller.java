@@ -64,7 +64,16 @@ public class controller {
                     data.dirSrcMLBatchFile = dirProject;
                     data.strProjectNameForSimulation = String.valueOf(args[2]);
                     data.dirSimulation = data.dirSimulation + "-" + technique;
-                    data.strSimulationFileName = "simulation-" + data.strProjectNameForSimulation + ".txt";
+                    if (args.length >= 4) {
+                        data.dirBugId = String.valueOf(args[3]);
+                    }
+
+                    data.strSimulationFileName = "simulation-" + data.strProjectNameForSimulation;
+                    if (data.dirBugId != null && data.dirBugId.isEmpty() == false) {
+                        data.strSimulationFileName += "-" + data.dirBugId;
+                    }
+                    data.strSimulationFileName += ".txt";
+
                     PerformSimulation(dirProject);
                     break;
                 case "flatten":
@@ -418,20 +427,36 @@ public class controller {
                         if (strSrcPath == null || strSrcPath.isEmpty() || lstSrc == null || lstSrc.isEmpty()) {
                             continue;
                         }
-                        LinkedList<Integer> lstChangedLineNums = objUtil.GetChangedLineNums(lstPatch);
-                        if (lstChangedLineNums == null || lstChangedLineNums.isEmpty()) {
+                        LinkedList<HashMap<Integer, Integer>> lstFirstMinusAndPlus = objUtil.GetListOfFirstMinusAndPlus(lstPatch);
+                        if (lstFirstMinusAndPlus == null || lstFirstMinusAndPlus.isEmpty()) {
                             continue;
                         }
 
+                        //debugging
+                        /*
+                        for (HashMap<Integer, Integer> mapFirstMinusAndPlus : lstFirstMinusAndPlus) {
+                            for (Integer firstMinus : mapFirstMinusAndPlus.keySet()) {
+                                Integer firstPlus = mapFirstMinusAndPlus.get(firstMinus);
+                                System.out.println(firstMinus + data.strPipe + firstPlus);
+                            }
+                        }
+                         */
                         String strMapFilePath = strSrcPath.replace(data.dirSrc, data.dirMutSrc).replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
                         HashMap<String, String> mapAvailableFns = objUtil.GetFnsFromMapFile(strMapFilePath);
                         if (mapAvailableFns == null || mapAvailableFns.isEmpty()) {
                             continue;
                         }
-                        Integer localSuccess = FindFunctionNameAndAddToList(strPrjWithPatchId, lstChangedLineNums, lstSrc, mapAvailableFns);
+                        Integer localSuccess = FindFunctionNameAndAddToList(strPrjWithPatchId, lstFirstMinusAndPlus, lstSrc, mapAvailableFns);
                         if (localSuccess > 0) {
                             filePatchSuccess++;
                         }
+                        //debugging
+                        /*
+                        for(String fnSig: objUtil.lstDiffMappedToFn){
+                            System.out.println(fnSig);
+                        }
+                         */
+                        System.out.println("processed a patch.");
                     }
                     System.out.println("processed " + filePatchSuccess + ".");
                 }
@@ -442,14 +467,24 @@ public class controller {
         }
     }
 
-    private Integer FindFunctionNameAndAddToList(String strPrjWithPatchId, LinkedList<Integer> lstChangedLineNums, LinkedList<String> lstSrc, HashMap<String, String> mapAvailableFns) {
+    private Integer FindFunctionNameAndAddToList(String strPrjWithPatchId, LinkedList<HashMap<Integer, Integer>> lstFirstMinusAndPlus, LinkedList<String> lstSrc, HashMap<String, String> mapAvailableFns) {
         try {
             Integer count = 0;
-            for (Integer changedLineNum : lstChangedLineNums) {
-                Integer index = changedLineNum - 1;
-                Boolean success = objUtil.FindFunctionNameAndAddToList(strPrjWithPatchId, index, lstSrc, mapAvailableFns);
-                if (success) {
-                    count++;
+            for (HashMap<Integer, Integer> mapFirstMinusAndPlus : lstFirstMinusAndPlus) {
+                for (Integer firstMinus : mapFirstMinusAndPlus.keySet()) {
+                    Integer firstPlus = mapFirstMinusAndPlus.get(firstMinus);
+
+                    if (firstMinus == 0) {
+                        firstMinus = firstPlus;
+                    }
+                    if (firstMinus == 0) {
+                        continue;
+                    }
+                    Integer index = firstMinus - 1;
+                    Boolean success = objUtil.FindFunctionNameAndAddToList(strPrjWithPatchId, index, lstSrc, mapAvailableFns);
+                    if (success) {
+                        count++;
+                    }
                 }
             }
             return count;
@@ -500,6 +535,13 @@ public class controller {
                     System.out.println("skipping " + strPrjWithPatchId);
                     continue;
                 }
+                if (data.dirBugId != null && data.dirBugId.isEmpty() == false) {
+                    if (!strPrjWithPatchId.equals(data.dirBugId)) {
+                        System.out.println("skipping " + strPrjWithPatchId);
+                        continue;
+                    }
+                }
+
                 System.out.println("processing " + strPrjWithPatchId);
                 String[] arrPrjWithPatchId = strPrjWithPatchId.split(Pattern.quote("_"));
                 String projectName = arrPrjWithPatchId[0];
