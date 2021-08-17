@@ -48,6 +48,9 @@ public class controller {
                     objUtil = new util(dirProject);
                     data.dirSrcMLBatchFile = dirProject;
                     data.dirMutSrc = data.dirMutSrc + "-" + technique;
+                    if (technique.equals("nmt")) {
+                        data.strTechnique = technique;
+                    }
                     ProcessSourcePatches(dirProject);
                     break;
                 case "simulate":
@@ -440,7 +443,7 @@ public class controller {
                                 System.out.println(firstMinus + data.strPipe + firstPlus);
                             }
                         }
-                         */
+                        */
                         String strMapFilePath = strSrcPath.replace(data.dirSrc, data.dirMutSrc).replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
                         HashMap<String, String> mapAvailableFns = objUtil.GetFnsFromMapFile(strMapFilePath);
                         if (mapAvailableFns == null || mapAvailableFns.isEmpty()) {
@@ -455,7 +458,7 @@ public class controller {
                         for(String fnSig: objUtil.lstDiffMappedToFn){
                             System.out.println(fnSig);
                         }
-                         */
+                        */
                         System.out.println("processed a patch.");
                     }
                     System.out.println("processed " + filePatchSuccess + ".");

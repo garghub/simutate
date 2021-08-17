@@ -18,7 +18,7 @@ public class main {
         try {
             //debug
             /*
-            args = new String[]{data.strProcessSourcePatches, "nmt"};
+            args = new String[]{data.strProcessSourcePatches, "codebert"};
             */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");

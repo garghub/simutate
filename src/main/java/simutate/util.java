@@ -1215,13 +1215,40 @@ public class util {
                 boolean boolCond02 = true;
                 if ((index - i >= 0)) {
                     trimmedSentence = lstSrc.get(index - i).trim();
-                    if (mapAvailableFns.containsKey(trimmedSentence)) {
-                        String strToAdd = strPrjWithPatchId + data.strPipe + mapAvailableFns.get(trimmedSentence);
-                        if (!lstDiffMappedToFn.contains(strToAdd)) {
-                            lstDiffMappedToFn.add(strToAdd);
+                    if (data.strTechnique != null && data.strTechnique.isEmpty() == false) {
+                        //nmt
+                        if (mapAvailableFns.containsKey(trimmedSentence)) {
+                            String strToAdd = strPrjWithPatchId + data.strPipe + mapAvailableFns.get(trimmedSentence);
+                            if (!lstDiffMappedToFn.contains(strToAdd)) {
+                                lstDiffMappedToFn.add(strToAdd);
+                            }
+                            foundFnName = true;
+                            break;
                         }
-                        foundFnName = true;
-                        break;
+                    } else {
+                        //other
+                        if (trimmedSentence.length() > 1) {
+                            for (String strAccessModifier : data.lstAccessModifiers) {
+                                trimmedSentence = trimmedSentence.replace(strAccessModifier, "");
+                            }
+                            trimmedSentence = trimmedSentence.replaceAll("\\s{2,}", " ").replace(" ", "").trim();
+                            for (String strAvailableFn : mapAvailableFns.keySet()) {
+                                String trimmedAvailableFn = strAvailableFn;
+                                for (String strAccessModifier : data.lstAccessModifiers) {
+                                    trimmedAvailableFn = trimmedAvailableFn.replace(strAccessModifier, "");
+                                }
+                                trimmedAvailableFn = strAvailableFn.replaceAll("\\s{2,}", " ").replace(" ", "").trim();
+                                if (trimmedAvailableFn.contains(trimmedSentence)) {
+                                    String[] arrAvailableFn = mapAvailableFns.get(strAvailableFn).split(data.strPipe);
+                                    String strToAdd = strPrjWithPatchId + data.strPipe + arrAvailableFn[0] + data.strPipe + strAvailableFn;
+                                    if (!lstDiffMappedToFn.contains(strToAdd)) {
+                                        lstDiffMappedToFn.add(strToAdd);
+                                    }
+                                    foundFnName = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 } else {
                     boolCond02 = false;

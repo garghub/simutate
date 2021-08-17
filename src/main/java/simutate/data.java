@@ -144,4 +144,7 @@ public class data {
     static LinkedList<String> lstInitialSemiDirOriginal = new LinkedList<String>(Arrays.asList(
             "/src/java/", "/src/main/java/", "/gson/src/main/java/", "/src/"
     ));
+    static LinkedList<String> lstAccessModifiers = new LinkedList<String>(Arrays.asList(
+            "private", "public", "protected", "{"
+    ));
 }
