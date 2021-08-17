@@ -27,6 +27,7 @@ java -jar [target-repository]/simutate-1.0.jar abstract
 
 java -jar [target-repository]/simutate-1.0.jar unabstract
 
+-----------------------------------------------------------------------------------------------------------------------------
 
 NOTE: please do not forget to modify below variables in data.java file to specify your desired repository locations and dependencies
 
