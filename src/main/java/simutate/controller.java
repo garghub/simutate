@@ -796,7 +796,7 @@ public class controller {
                     brokenTestsByBug = new HashSet<String>(lstBuggySimulation);
                 }
                 for (File fileMutantSimulation : folderProjectWithPatchId.listFiles()) {
-                    Double ochiaiScore = 0.0;
+                    Double ochiaiScore = -1.0;
                     Boolean mutantOutputAvailable = true;
                     String strMutantSimulationFileName = fileMutantSimulation.getName();
                     String strMutantSimulationFilePath = fileMutantSimulation.getPath();
@@ -826,9 +826,15 @@ public class controller {
                     System.out.println(strToAdd);
                 }
                 String dirSemantic = dirProjectWithPatchId.replace(data.strSimulation, data.strSemantic);
+                if (objUtil.FileExists(dirSemantic + "/" + data.strSemanticSimilarityFileName)) {
+                    objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirSemantic + "/" + data.strSemanticSimilarityFileName, null);
+                }
                 objUtil.WriteListToFile(dirSemantic, data.strSemanticSimilarityFileName, lstSemanticSimilarity);
             }
             String dirOverallSemantic = dirProject.replace(data.strSimulation, data.strSemantic);
+            if (objUtil.FileExists(dirOverallSemantic + "/" + data.strOverallSemanticSimilarityFileName)) {
+                objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirOverallSemantic + "/" + data.strOverallSemanticSimilarityFileName, null);
+            }
             objUtil.WriteListToFile(dirOverallSemantic, data.strOverallSemanticSimilarityFileName, lstOverallSemanticSimilarity);
         } catch (Exception ex) {
             System.out.println("error at controller.PerformComparison()");
