@@ -29,6 +29,8 @@ java -jar [target-repository]/simutate-1.0.jar abstract
 
 java -jar [target-repository]/simutate-1.0.jar unabstract
 
+java -jar [target-repository]/simutate-1.0.jar compare codebert
+
 -----------------------------------------------------------------------------------------------------------------------------
 
 NOTE: please do not forget to modify below variables in data.java file to specify your desired repository locations and dependencies
@@ -47,7 +49,8 @@ java -jar C:\GitHub\simutate\target\simutate-1.0.jar
 
 please pass below as arguments and try again
 
-1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten / getalltests )
+1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten / getalltests / compare )
+
 
 NOTE: for task "simulate", please pass below as additional arguments and try again
 
@@ -55,9 +58,15 @@ Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)
 
 Additional 2. project name to perform simulation for (e.g. Cli)
 
+Optional parameters -
+
+Optional 1. bug id to perform simulation for (e.g. Cli_1 / Mockito_2 / ...)
+
+
 and
 
-Also for tasks "flatten", "processsourcepatches", and "getalltests", please pass below as additional arguments and try again
+
+Also for tasks "flatten", "processsourcepatches", "getalltests", and "compare", please pass below as additional arguments and try again
 
 Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)
 
