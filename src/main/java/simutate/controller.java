@@ -7,7 +7,9 @@ package simutate;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -110,6 +112,19 @@ public class controller {
                     data.dirSimulation = data.dirSimulation + "-" + technique;
                     data.dirAllTests = data.dirAllTests + "-" + technique;
                     GetAllTests(dirProject);
+                    break;
+                case "compare":
+                    if (args.length < 2) {
+                        System.out.println("NOTE: for task \"" + data.strCompare + "\", please pass below as additional arguments and try again");
+                        System.out.println("Additional 1. simulation directory technique suffix (e.g. nmt / codebert / ...)");
+                        break;
+                    }
+                    technique = String.valueOf(args[1]);
+                    data.dirSimulation = data.dirSimulation + "-" + technique;
+                    dirProject = data.dirSimulation;
+                    objUtil = new util(dirProject);
+                    data.dirSrcMLBatchFile = dirProject;
+                    Compare(dirProject);
                     break;
                 default:
                     System.out.println("wrong choice of task. available choices : " + data.strAbstract + " / " + data.strUnabstract
@@ -443,7 +458,7 @@ public class controller {
                                 System.out.println(firstMinus + data.strPipe + firstPlus);
                             }
                         }
-                        */
+                         */
                         String strMapFilePath = strSrcPath.replace(data.dirSrc, data.dirMutSrc).replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
                         HashMap<String, String> mapAvailableFns = objUtil.GetFnsFromMapFile(strMapFilePath);
                         if (mapAvailableFns == null || mapAvailableFns.isEmpty()) {
@@ -458,7 +473,7 @@ public class controller {
                         for(String fnSig: objUtil.lstDiffMappedToFn){
                             System.out.println(fnSig);
                         }
-                        */
+                         */
                         System.out.println("processed a patch.");
                     }
                     System.out.println("processed " + filePatchSuccess + ".");
@@ -748,6 +763,75 @@ public class controller {
             }
         } catch (Exception ex) {
             System.out.println("error at simutate.controller.traverseMutantsDirToGetAllTests()");
+            throw ex;
+        }
+    }
+
+    private void Compare(String dirProject) throws Exception {
+        try {
+            File folderSimulation = new File(dirProject);
+            LinkedList<String> lstOverallSemanticSimilarity = new LinkedList();
+            for (File folderProjectWithPatchId : folderSimulation.listFiles()) {
+                LinkedList<String> lstSemanticSimilarity = new LinkedList();
+                String strProjectWithPatchId = folderProjectWithPatchId.getName();
+                String dirProjectWithPatchId = folderProjectWithPatchId.getPath().replace("\\", "/");
+                String strBugSimulationFileName = data.strBuggy + data.strTestPartialFileName;
+                String strBugSimulationFilePath = dirProjectWithPatchId + "/" + strBugSimulationFileName;
+                if (!objUtil.FileExists(strBugSimulationFilePath)) {
+                    continue;
+                }
+                Boolean bugOutputAvailable = true;
+                Set<String> brokenTestsByBug = new HashSet();
+                LinkedList<String> lstBuggySimulation = objUtil.ReadFileToList(strBugSimulationFilePath);
+                if (lstBuggySimulation == null || lstBuggySimulation.isEmpty()) {
+                    bugOutputAvailable = false;
+                }
+                if (bugOutputAvailable) {
+                    String strFailingTestsSentence = lstBuggySimulation.remove(0);
+                    if (lstBuggySimulation == null || lstBuggySimulation.isEmpty()) {
+                        bugOutputAvailable = false;
+                    }
+                }
+                if (bugOutputAvailable) {
+                    brokenTestsByBug = new HashSet<String>(lstBuggySimulation);
+                }
+                for (File fileMutantSimulation : folderProjectWithPatchId.listFiles()) {
+                    Double ochiaiScore = 0.0;
+                    Boolean mutantOutputAvailable = true;
+                    String strMutantSimulationFileName = fileMutantSimulation.getName();
+                    String strMutantSimulationFilePath = fileMutantSimulation.getPath();
+                    if (!strMutantSimulationFileName.matches(data.strTxtExtensionCheck)) {
+                        continue;
+                    }
+                    if (strMutantSimulationFileName.equals(strBugSimulationFileName)) {
+                        continue;
+                    }
+                    LinkedList<String> lstMutantSimulation = objUtil.ReadFileToList(strMutantSimulationFilePath);
+                    if (lstMutantSimulation == null || lstMutantSimulation.isEmpty()) {
+                        mutantOutputAvailable = false;
+                    }
+                    if (mutantOutputAvailable) {
+                        String strFailingTestsSentence = lstMutantSimulation.remove(0);
+                        if (lstMutantSimulation == null || lstMutantSimulation.isEmpty()) {
+                            mutantOutputAvailable = false;
+                        }
+                        if (bugOutputAvailable && mutantOutputAvailable) {
+                            ochiaiScore = objUtil.calculateOchiai(brokenTestsByBug, lstMutantSimulation);
+                        }
+                    }
+                    String strMutantFileName = strMutantSimulationFileName.replace(data.strTestPartialFileName, data.strSupportedLangExt);
+                    String strToAdd = strProjectWithPatchId + data.strPipe + strMutantFileName + data.strPipe + data.strOchiai + data.strColonSpace + ochiaiScore;
+                    lstSemanticSimilarity.add(strToAdd);
+                    lstOverallSemanticSimilarity.add(strToAdd);
+                    System.out.println(strToAdd);
+                }
+                String dirSemantic = dirProjectWithPatchId.replace(data.strSimulation, data.strSemantic);
+                objUtil.WriteListToFile(dirSemantic, data.strSemanticSimilarityFileName, lstSemanticSimilarity);
+            }
+            String dirOverallSemantic = dirProject.replace(data.strSimulation, data.strSemantic);
+            objUtil.WriteListToFile(dirOverallSemantic, data.strOverallSemanticSimilarityFileName, lstOverallSemanticSimilarity);
+        } catch (Exception ex) {
+            System.out.println("error at controller.PerformComparison()");
             throw ex;
         }
     }

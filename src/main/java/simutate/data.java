@@ -16,7 +16,7 @@ import java.util.LinkedList;
 public class data {
 
     static Boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows") ? true : false;
-    static String dirMain = isWindows ? "C:/GitHub/mutation" : "/home/agarg/ag/mutation";
+    static String dirMain = isWindows ? "//atlas/users/aayush.garg/c/github/mutation" : "/home/agarg/ag/mutation"; //C:/GitHub/mutation
     static String strCommandExecutionInitial01 = isWindows ? "cmd.exe" : "bash";
     static String strCommandExecutionInitial02 = isWindows ? "/c" : "-c";
     //for this srcml is not in docker
@@ -29,11 +29,13 @@ public class data {
     static String strSimulate = "simulate";
     static String strFlatten = "flatten";
     static String strGetAllTests = "getalltests";
+    static String strCompare = "compare";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
     static String strTxtExt = ".txt";
     static String strExtensionCheck = ".*\\" + strSupportedLangExt + "$";
+    static String strTxtExtensionCheck = ".*\\" + strTxtExt + "$";
     static String dirSrcMLBatchFile;// "/home/agarg/ag/gassert/misc";
     static String strProcessedFilesFileName = "processedfiles.txt";
     static String strProcessedFilesBkpFileName = "processedfilesbackup.txt";
@@ -99,8 +101,8 @@ public class data {
     static String strProjectNameForSimulation;
     static String strAllProjectsForSimulation = "all";
     static String dirBugId;
-
-    static String dirSimulation = dirMain + "/simulation";
+    static String strSimulation = "simulation";
+    static String dirSimulation = dirMain + "/" + strSimulation;
     static String strAllTests = "alltests";
     static String dirAllTests = dirMain + "/" + strAllTests;
     static String dirSimulationForBugs = dirSimulation + "-nmt";
@@ -136,6 +138,11 @@ public class data {
     static String strFlattenedMutatedFnsFileName = "flattenedmutatedfns.txt";
     static String strFlattenedBuggyFnsFileName = "flattenedbuggyfns.txt";
     static String strTechnique;
+
+    static String strOchiai = "OCHIAI";
+    static String strSemantic = "semantic";
+    static String strSemanticSimilarityFileName = "semanticsimilarity.txt";
+    static String strOverallSemanticSimilarityFileName = "overallsemanticsimilarity.txt";
     /*static LinkedList<String> lstProjects = new LinkedList<String>(Arrays.asList(
             "Cli", "Codec", "Collections", "Compress", "Csv",
             "Gson", "JacksonCore", "JacksonDatabind", "JacksonXml", "Jsoup",

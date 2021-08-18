@@ -19,7 +19,10 @@ import java.util.regex.Pattern;
 //import org.apache.maven.shared.utils.cli.Commandline;
 
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -1831,4 +1834,38 @@ public class util {
         }
     }
 
+    public double calculateOchiai(Set<String> brokenTestsByBug, Collection<String> brokenTestsByMutant) {
+        try {
+            assert brokenTestsByBug != null && !brokenTestsByBug.isEmpty();
+            if (brokenTestsByMutant == null || brokenTestsByMutant.isEmpty()) {
+                return 0d;
+            }
+            Set<String> intersection = intersection(brokenTestsByBug, brokenTestsByMutant);
+            double prod = brokenTestsByBug.size() * brokenTestsByMutant.size();
+            if (prod == 0d || intersection.isEmpty()) {
+                return 0d;
+            }
+            return ((double) intersection.size()) / Math.sqrt(prod);
+        } catch (Exception ex) {
+            System.out.println("error at util.calculateOchiai()");
+            throw ex;
+        }
+    }
+
+    public <T> Set<T> intersection(Collection<T> list1, Collection<T> list2) {
+        try {
+            Set<T> set = new HashSet<>();
+            if (list1 != null && list2 != null && !list1.isEmpty() && !list2.isEmpty()) {
+                for (T t : list1) {
+                    if (list2.contains(t)) {
+                        set.add(t);
+                    }
+                }
+            }
+            return set;
+        } catch (Exception ex) {
+            System.out.println("error at util.intersection()");
+            throw ex;
+        }
+    }
 }
