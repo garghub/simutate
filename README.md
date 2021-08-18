@@ -8,7 +8,7 @@ stuff you require before runnning
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-mvn clean package install
+mvn clean package
 
 java -jar [target-repository]/simutate-1.0.jar [arguments]
 
