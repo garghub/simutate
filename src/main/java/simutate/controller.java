@@ -6,6 +6,7 @@
 package simutate;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -88,17 +89,17 @@ public class controller {
                         break;
                     }
                     technique = String.valueOf(args[1]);
-                    
+
                     String projectName = null;
                     if (args.length >= 3) {
                         projectName = String.valueOf(args[2]);
                     }
-                    
+
                     String projectWithPatchId = null;
                     if (args.length >= 4) {
                         projectWithPatchId = String.valueOf(args[3]);
                     }
-                    
+
                     if (technique.equals("nmt")) {
                         data.strTechnique = technique;
                     }
@@ -258,7 +259,7 @@ public class controller {
                     String strClassFileName = strParentName + data.strSupportedLangExt;
                     String fnFilePath = dirParent + "/" + fnFileName;
                     LinkedList<String> lstOrigFn = objUtil.ReadFileToList(fnFilePath);
-                    strFnSig = GetMethodNameWithSignatures(lstOrigFn);
+                    strFnSig = objUtil.GetMethodNameWithSignatures(lstOrigFn);
                     String strOrigFn = objUtil.ConvertListToString(lstOrigFn).trim();
                     String classFilePath = dirParent + "/" + strClassFileName;
                     LinkedList<String> lstOrigClass = objUtil.ReadFileToList(classFilePath);
@@ -352,8 +353,8 @@ public class controller {
                 System.out.println(dirProject + " does not exist.");
                 return;
             }
-            if (!objUtil.FileExists(data.dirSrc)) {
-                System.out.println(data.dirSrc + " does not exist.");
+            if (!objUtil.FileExists(data.dirBuggySrc)) {
+                System.out.println(data.dirBuggySrc + " does not exist.");
                 return;
             }
             if (!objUtil.FileExists(data.dirMutSrc)) {
@@ -390,7 +391,7 @@ public class controller {
                     }
                     String patchId = patchFileName.replace(data.strSrcPatchExt, "");
                     String strPrjWithPatchId = projectName + "_" + patchId;
-                    String dirPrjSrc = data.dirSrc + "/" + strPrjWithPatchId;
+                    String dirPrjSrc = data.dirBuggySrc + "/" + strPrjWithPatchId;
                     if (!objUtil.FileExists(dirPrjSrc)) {
                         continue;
                     }
@@ -452,17 +453,8 @@ public class controller {
                             continue;
                         }
 
-                        //here i intend to get the srcml of code to get function start and function stop line #
-                        String strBuggyFileXML = objUtil.ExecuteProcess(data.strInitialCommandForsrcml, srcFilePath);
-                        if (strBuggyFileXML == null) {
-                            continue;
-                        }
-                        strBuggyFileXML = strBuggyFileXML.substring(strBuggyFileXML.indexOf("<unit"), strBuggyFileXML.length());
-                        String[] arrBuggyFileXML = strBuggyFileXML.split(Pattern.quote("\\r\\n"));
-                        for(int i = 0; i < arrBuggyFileXML.length; i ++){
-                            
-                        }
-                        
+                        HashMap<String, LinkedList<Integer>> mapFnStartEnd = objUtil.GetFunctionsInBuggyFileStartEnd(srcFilePath, lstBuggyFile);
+
                         String strSrcPath = null;
                         LinkedList<String> lstSrc = null;
                         for (String key : mapPathWithSrcCode.keySet()) {
@@ -478,21 +470,16 @@ public class controller {
                             continue;
                         }
 
-                        //debugging
-                        /*
-                        for (HashMap<Integer, Integer> mapFirstMinusAndPlus : lstFirstMinusAndPlus) {
-                            for (Integer firstMinus : mapFirstMinusAndPlus.keySet()) {
-                                Integer firstPlus = mapFirstMinusAndPlus.get(firstMinus);
-                                System.out.println(firstMinus + data.strPipe + firstPlus);
-                            }
-                        }
-                         */
-                        String strMapFilePath = strSrcPath.replace(data.dirSrc, data.dirMutSrc).replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
-                        HashMap<String, String> mapAvailableFns = objUtil.GetFnsFromMapFile(strMapFilePath);
-                        if (mapAvailableFns == null || mapAvailableFns.isEmpty()) {
+                        String strMapFilePath = strSrcPath.replace(data.dirBuggySrc, data.dirMutSrc).replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
+                        HashMap<String, String> mapMutantsWithFns = objUtil.GetMutantsWithFnsFromMapFile(strMapFilePath);
+                        if (mapMutantsWithFns == null || mapMutantsWithFns.isEmpty()) {
                             continue;
                         }
-                        Integer localSuccess = FindFunctionNameAndAddToList(strPrjWithPatchId, lstFirstMinusAndPlus, lstSrc, mapAvailableFns);
+
+                        //Below was used when I didnt had funtion begin and end line numbers, got inaccurate mapping
+                        //Integer localSuccess = FindFunctionNameAndAddToList(strPrjWithPatchId, lstFirstMinusAndPlus, lstSrc, mapMutantsWithFns);
+                        //
+                        Integer localSuccess = FindFunctionNameUsingBeginEndAndAddToList(strPrjWithPatchId, lstFirstMinusAndPlus, mapFnStartEnd, mapMutantsWithFns);
                         if (localSuccess > 0) {
                             filePatchSuccess++;
                         }
@@ -513,6 +500,7 @@ public class controller {
         }
     }
 
+    //Not used
     private Integer FindFunctionNameAndAddToList(String strPrjWithPatchId, LinkedList<HashMap<Integer, Integer>> lstFirstMinusAndPlus, LinkedList<String> lstSrc, HashMap<String, String> mapAvailableFns) {
         try {
             Integer count = 0;
@@ -541,17 +529,31 @@ public class controller {
         }
     }
 
-    private String GetMethodNameWithSignatures(LinkedList<String> lstOrigFn) {
-        String strFnSig = "";
+    private Integer FindFunctionNameUsingBeginEndAndAddToList(String strPrjWithPatchId, LinkedList<HashMap<Integer, Integer>> lstFirstMinusAndPlus
+            , HashMap<String, LinkedList<Integer>> mapFnStartEnd, HashMap<String, String> mapMutantsWithFns) {
         try {
-            int i = 0;
-            while (strFnSig.contains("(") == false) {
-                strFnSig = lstOrigFn.get(i);
-                i++;
+            Integer count = 0;
+            for (HashMap<Integer, Integer> mapFirstMinusAndPlus : lstFirstMinusAndPlus) {
+                for (Integer firstMinus : mapFirstMinusAndPlus.keySet()) {
+                    Integer firstPlus = mapFirstMinusAndPlus.get(firstMinus);
+
+                    if (firstMinus == 0) {
+                        firstMinus = firstPlus;
+                    }
+                    if (firstMinus == 0) {
+                        continue;
+                    }
+                    Boolean success = objUtil.FindFunctionNameUsingBeginEndAndAddToList(strPrjWithPatchId, firstMinus, mapFnStartEnd, mapMutantsWithFns);
+                    if (success) {
+                        count++;
+                    }
+                }
             }
-            return strFnSig;
+            return count;
         } catch (Exception ex) {
-            return strFnSig;
+            System.out.println("error at controller.FindFunctionNameUsingBeginEndAndAddToList()");
+            ex.printStackTrace();
+            return 0;
         }
     }
 
@@ -651,13 +653,13 @@ public class controller {
                 String strProjectWithPatchId = folderProject.getName();
                 String[] arrPrjWithPatchId = strProjectWithPatchId.split(Pattern.quote("_"));
                 String strProjectName = arrPrjWithPatchId[0];
-                if(projectName != null && projectName.trim().isEmpty() == false){
-                    if(strProjectName.equals(projectName) == false){
+                if (projectName != null && projectName.trim().isEmpty() == false) {
+                    if (strProjectName.equals(projectName) == false) {
                         continue;
                     }
                 }
-                if(projectWithPatchId != null && projectWithPatchId.trim().isEmpty() == false){
-                    if(strProjectWithPatchId.equals(projectWithPatchId) == false){
+                if (projectWithPatchId != null && projectWithPatchId.trim().isEmpty() == false) {
+                    if (strProjectWithPatchId.equals(projectWithPatchId) == false) {
                         continue;
                     }
                 }
@@ -715,7 +717,7 @@ public class controller {
                     }
 
                     HashMap<String, String> mapFlattenedBuggyFns = objUtil.GetAllFlattenedFns(dirBuggyFile, lstMap);
-                    if(mapFlattenedBuggyFns == null || mapFlattenedBuggyFns.isEmpty()){
+                    if (mapFlattenedBuggyFns == null || mapFlattenedBuggyFns.isEmpty()) {
                         continue;
                     }
                     for (String strMap : lstMap) {

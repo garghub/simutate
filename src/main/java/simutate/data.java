@@ -94,6 +94,8 @@ public class data {
     static String strSrcPatchExt = ".src.patch";
     static String strSrcPatchExtCheck = ".*\\" + strSrcPatchExt + "$";
     static String dirSrc = dirMain + "/experiment";
+    static String dirBuggySrc = dirSrc + "_bugs";
+    static String strFnsBeginEndMap = "mapfnsbeginend";
     static String dirMutSrc = dirSrc + strMutants;
     static String dirPatches = dirMain + "/patches";
     static String strToLookInPatch = "@@ ";
@@ -143,6 +145,10 @@ public class data {
     static String strSemantic = "semantic";
     static String strSemanticSimilarityFileName = "semanticsimilarity.txt";
     static String strOverallSemanticSimilarityFileName = "overallsemanticsimilarity.txt";
+    
+    static String strFnStartTag = "<function>";
+    static String strFnEndTag = "</function>";
+            
     /*static LinkedList<String> lstProjects = new LinkedList<String>(Arrays.asList(
             "Cli", "Codec", "Collections", "Compress", "Csv",
             "Gson", "JacksonCore", "JacksonDatabind", "JacksonXml", "Jsoup",

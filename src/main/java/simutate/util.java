@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 //import org.apache.maven.shared.utils.cli.Commandline;
 
 import java.io.StringReader;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -496,8 +497,8 @@ public class util {
     public LinkedList<String> GetFnXMLS(String strFileXML) throws Exception {
         LinkedList<String> listReturned = new LinkedList();
         try {
-            String startTag = "<function>";
-            String endTag = "</function>";
+            String startTag = data.strFnStartTag;// "<function>";
+            String endTag = data.strFnEndTag;// "</function>";
             strFileXML = strFileXML.substring(strFileXML.indexOf('<'));
 
             String[] strings = strFileXML.split(Pattern.quote(startTag));
@@ -1190,7 +1191,7 @@ public class util {
         }
     }
 
-    HashMap<String, String> GetFnsFromMapFile(String strMapFilePath) {
+    HashMap<String, String> GetMutantsWithFnsFromMapFile(String strMapFilePath) {
         HashMap<String, String> mapAvailableFns = new HashMap();
         try {
             LinkedList<String> lst = ReadFileToList(strMapFilePath);
@@ -1202,16 +1203,17 @@ public class util {
                     continue;
                 }
                 String[] arr = str.split(Pattern.quote(data.strPipe));
-                mapAvailableFns.put(arr[1], str);
+                mapAvailableFns.put(arr[0], arr[1]);
             }
             return mapAvailableFns;
         } catch (Exception ex) {
-            System.out.println("util.GetFnsFromMapFile()");
+            System.out.println("util.GetMutantsWithFnsFromMapFile()");
             ex.printStackTrace();
             return mapAvailableFns;
         }
     }
 
+    //Not used
     Boolean FindFunctionNameAndAddToList(String strPrjWithPatchId, Integer index, LinkedList<String> lstSrc, HashMap<String, String> mapAvailableFns) {
         try {
             int i = 0;
@@ -1267,6 +1269,69 @@ public class util {
             return foundFnName;
         } catch (Exception ex) {
             System.out.println("error at util.FindFunctionNameAndAddToList()");
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    Boolean FindFunctionNameUsingBeginEndAndAddToList(String strPrjWithPatchId, Integer affectedLineNum,
+            HashMap<String, LinkedList<Integer>> mapFnStartEnd, HashMap<String, String> mapMutantsWithFns) {
+        try {
+            Boolean foundFnName = false;
+            String trimmedSentence;
+            for (String methodNameWithSignatures : mapFnStartEnd.keySet()) {
+                LinkedList<Integer> lstStartEnd = mapFnStartEnd.get(methodNameWithSignatures);
+                if (affectedLineNum >= lstStartEnd.get(0) && affectedLineNum <= lstStartEnd.get(1)) {
+                    trimmedSentence = methodNameWithSignatures;
+//                        if (data.strTechnique != null && data.strTechnique.isEmpty() == false) {
+//                            //nmt
+//                            if (mapMutantsWithFns.containsKey(trimmedSentence)) {
+//                                String strToAdd = strPrjWithPatchId + data.strPipe + mapMutantsWithFns.get(trimmedSentence);
+//                                if (!lstDiffMappedToFn.contains(strToAdd)) {
+//                                    lstDiffMappedToFn.add(strToAdd);
+//                                }
+//                                foundFnName = true;
+//                                break;
+//                            }
+//                        } else {
+                    //other
+                    if (trimmedSentence.length() > 1) {
+                        for (String strAccessModifier : data.lstAccessModifiers) {
+                            trimmedSentence = trimmedSentence.replace(strAccessModifier, "");
+                        }
+                        trimmedSentence = trimmedSentence.replaceAll("\\s{2,}", " ").replace(" ", "").trim();
+                        for (String strMutant : mapMutantsWithFns.keySet()) {
+                            String strAvailableFn = mapMutantsWithFns.get(strMutant);
+                            String trimmedAvailableFn = strAvailableFn;
+                            for (String strAccessModifier : data.lstAccessModifiers) {
+                                trimmedAvailableFn = trimmedAvailableFn.replace(strAccessModifier, "");
+                            }
+                            trimmedAvailableFn = strAvailableFn.replaceAll("\\s{2,}", " ").replace(" ", "").trim();
+                            if (trimmedAvailableFn.contains(trimmedSentence)) {
+                                for (String strAnotherMutant : mapMutantsWithFns.keySet()) {
+                                    String strAnotherFn = mapMutantsWithFns.get(strAnotherMutant);
+                                    if (strAnotherFn.equals(strAvailableFn) == false) {
+                                        continue;
+                                    }
+                                    String strToAdd = strPrjWithPatchId + data.strPipe + strAnotherMutant + data.strPipe + strAvailableFn;
+                                    if (!lstDiffMappedToFn.contains(strToAdd)) {
+                                        lstDiffMappedToFn.add(strToAdd);
+                                    }
+                                }
+                                foundFnName = true;
+                                break;
+                            }
+                        }
+                    }
+//                        }
+                }
+                if (foundFnName) {
+                    break;
+                }
+            }
+            return foundFnName;
+        } catch (Exception ex) {
+            System.out.println("error at util.FindFunctionNameUsingBeginEndAndAddToList()");
             ex.printStackTrace();
             return false;
         }
@@ -1792,7 +1857,7 @@ public class util {
             }
 
             LinkedList<String> listFnXMLs = GetFnXMLS(strCleanedXML);
-            if(listFnXMLs == null || listFnXMLs.isEmpty()){
+            if (listFnXMLs == null || listFnXMLs.isEmpty()) {
                 return null;
             }
             LinkedList<String> lstFlattenedFn = FlattenAllFunctions(strCodeFilePath, strCleanedXML, strCleanedCode, className, listFnXMLs);
@@ -1874,6 +1939,79 @@ public class util {
         } catch (Exception ex) {
             System.out.println("error at util.intersection()");
             throw ex;
+        }
+    }
+
+    public String GetMethodNameWithSignatures(LinkedList<String> lstOrigFn) {
+        String strFnSig = "";
+        try {
+            int i = 0;
+            while (strFnSig.contains("(") == false) {
+                strFnSig = lstOrigFn.get(i);
+                i++;
+            }
+            return strFnSig;
+        } catch (Exception ex) {
+            return strFnSig;
+        }
+    }
+
+    HashMap<String, LinkedList<Integer>> GetFunctionsInBuggyFileStartEnd(String srcFilePath, LinkedList<String> lstBuggyFile) {
+        try {
+            //here i intend to get the srcml of code to get function start and function stop line #
+            HashMap<String, LinkedList<Integer>> mapFnStartEnd = new HashMap();
+            String dirBuggyFnsBeginEnd = srcFilePath.replace(data.strSupportedLangExt, "_" + data.strFnsBeginEndMap + data.strTxtExt);
+            if (FileExists(dirBuggyFnsBeginEnd)) {
+                LinkedList<String> lstBuggyFnsBeginEnd = ReadFileToList(dirBuggyFnsBeginEnd);
+                for (String strBuggyFnsBeginEnd : lstBuggyFnsBeginEnd) {
+                    String[] arrBuggyFnsBeginEnd = strBuggyFnsBeginEnd.split(Pattern.quote(data.strPipe));
+                    Integer intStart = Integer.parseInt(arrBuggyFnsBeginEnd[1]);
+                    Integer intStop = Integer.parseInt(arrBuggyFnsBeginEnd[2]);
+                    mapFnStartEnd.put(arrBuggyFnsBeginEnd[0], new LinkedList<Integer>(Arrays.asList(intStart, intStop)));
+                }
+                return mapFnStartEnd;
+            }
+            String strBuggyFileXML = ExecuteProcess(data.strInitialCommandForsrcml, srcFilePath);
+            if (strBuggyFileXML == null) {
+                return null;
+            }
+            strBuggyFileXML = strBuggyFileXML.substring(strBuggyFileXML.indexOf("<unit"), strBuggyFileXML.length());
+            String[] arrBuggyFileXML = strBuggyFileXML.split(Pattern.quote("\r\n"));
+
+            Integer startLineNum = 0;
+            Integer endLineNum = 0;
+            for (int i = 0; i < arrBuggyFileXML.length; i++) {
+                if (arrBuggyFileXML[i].contains(data.strFnStartTag)) {
+                    startLineNum = i + 1;
+                } else if (arrBuggyFileXML[i].contains(data.strFnEndTag)) {
+                    endLineNum = i + 1;
+                }
+                if (startLineNum != 0 && endLineNum != 0) {
+                    LinkedList<String> lstFunction = new LinkedList();
+                    for (int j = startLineNum - 1; j < endLineNum; j++) {
+                        lstFunction.add(lstBuggyFile.get(j));
+                    }
+                    String methodWithSignature = GetMethodNameWithSignatures(lstFunction);
+                    mapFnStartEnd.put(methodWithSignature.trim(), new LinkedList<Integer>(Arrays.asList(
+                            startLineNum, endLineNum
+                    )));
+                    startLineNum = 0;
+                    endLineNum = 0;
+                }
+            }
+            LinkedList<String> lstBuggyFnsBeginEnd = new LinkedList();
+            for (String methodNameWithSignatures : mapFnStartEnd.keySet()) {
+                LinkedList<Integer> lstStartEnd = mapFnStartEnd.get(methodNameWithSignatures);
+                lstBuggyFnsBeginEnd.add(methodNameWithSignatures + data.strPipe + lstStartEnd.get(0) + data.strPipe + lstStartEnd.get(1));
+            }
+            String dirContainingBuggyFnBeginEnd = dirBuggyFnsBeginEnd.substring(0, dirBuggyFnsBeginEnd.lastIndexOf("/"));
+            String strBuggyFnBeginEndFileName = dirBuggyFnsBeginEnd.replace(dirContainingBuggyFnBeginEnd + "/", "");
+            WriteListToFile(dirContainingBuggyFnBeginEnd, strBuggyFnBeginEndFileName, lstBuggyFnsBeginEnd);
+            return mapFnStartEnd;
+        } catch (Exception ex) {
+            System.out.println("error at util.GetFunctionsInBuggyFileStartEnd()");
+            ex.printStackTrace();
+            return null;
         }
     }
 }
