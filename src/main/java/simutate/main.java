@@ -18,8 +18,9 @@ public class main {
         try {
             //debug
             /*
-            args = new String[]{data.strCompare, "nmt"};
-            */
+            //args = new String[]{data.strFlatten, "codebert"};
+            //args = new String[]{data.strProcessSourcePatches, "nmt"};
+             */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
                 System.out.println("1. a task to perform (e.g. " + data.strAbstract + " / " + data.strUnabstract + " / " + data.strProcessSourcePatches
@@ -27,13 +28,17 @@ public class main {
                 System.out.println("NOTE: for task \"" + data.strSimulate + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
                 System.out.println("Additional 2. project name to perform simulation for (e.g. Cli)");
-                System.out.println("Optional parameters -");
-                System.out.println("Optional 1. bug id to perform simulation for (e.g. Cli_1 / Mockito_2 / ...)");
                 System.out.println("and");
-                System.out.println("Also for tasks \"" + data.strFlatten + "\", \"" + data.strProcessSourcePatches + "\", \"" + data.strGetAllTests 
-                        + "\", and \"" + data.strCompare 
+                System.out.println("Also for tasks \"" + data.strFlatten + "\", \"" + data.strProcessSourcePatches + "\", \"" + data.strGetAllTests
+                        + "\", and \"" + data.strCompare
                         + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
+                System.out.println("Optional parameters:");
+                System.out.println("Optional parameters for task \"" + data.strSimulate + "\" -");
+                System.out.println("Optional 1. bug id to perform simulation for (e.g. Cli_1 / Cli_2 / ...)");
+                System.out.println("Optional parameters for task \"" + data.strFlatten + "\" -");
+                System.out.println("Optional 1. project name to perform flattening for (e.g. Cli)");
+                System.out.println("Optional 2. bug id to perform flattening for (e.g. Cli_1 / Cli_2 / ...)");
                 return;
             }
             controller objController = new controller();

@@ -138,7 +138,9 @@ public class util {
             //    return;
             //}
             LinkedList<String> listFnXMLs = GetFnXMLS(strCleanedXML);
-
+            if (listFnXMLs == null || listFnXMLs.isEmpty()) {
+                return;
+            }
             //ProcessFunctions(strCodeFilePath, strCleanedXML, strCleanedCode, packageName, className, listFnXMLs);
             ProcessFunctions(strCodeFilePath, strCleanedXML, strCleanedCode, className, listFnXMLs);
 
@@ -201,7 +203,7 @@ public class util {
 
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                //System.out.println(line);
                 if (strOutput.isEmpty()) {
                     strOutput = line;
                 } else {
@@ -492,8 +494,8 @@ public class util {
     }
 
     public LinkedList<String> GetFnXMLS(String strFileXML) throws Exception {
+        LinkedList<String> listReturned = new LinkedList();
         try {
-            LinkedList<String> listReturned = new LinkedList();
             String startTag = "<function>";
             String endTag = "</function>";
             strFileXML = strFileXML.substring(strFileXML.indexOf('<'));
@@ -509,7 +511,8 @@ public class util {
             return listReturned;
         } catch (Exception ex) {
             System.out.println("error at simutate.util.GetFnXMLS()");
-            throw ex;
+            ex.printStackTrace();
+            return listReturned;
         }
     }
 
@@ -1701,7 +1704,9 @@ public class util {
             strCleanedCode = arrCleanedCodeWithXML[1];
 
             LinkedList<String> listFnXMLs = GetFnXMLS(strCleanedXML);
-            strFlattenedFn = FlattenFunction(strCleanedXML, listFnXMLs, strFnPhrase);
+            if (listFnXMLs != null && listFnXMLs.isEmpty() == false) {
+                strFlattenedFn = FlattenFunction(strCleanedXML, listFnXMLs, strFnPhrase);
+            }
             return strFlattenedFn;
         } catch (Exception ex) {
             System.out.println("error at util.GetFlattenedFn()");
@@ -1787,6 +1792,9 @@ public class util {
             }
 
             LinkedList<String> listFnXMLs = GetFnXMLS(strCleanedXML);
+            if(listFnXMLs == null || listFnXMLs.isEmpty()){
+                return null;
+            }
             LinkedList<String> lstFlattenedFn = FlattenAllFunctions(strCodeFilePath, strCleanedXML, strCleanedCode, className, listFnXMLs);
             if (lstFlattenedFn == null || lstFlattenedFn.isEmpty()) {
                 return null;

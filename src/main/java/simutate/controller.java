@@ -88,6 +88,17 @@ public class controller {
                         break;
                     }
                     technique = String.valueOf(args[1]);
+                    
+                    String projectName = null;
+                    if (args.length >= 3) {
+                        projectName = String.valueOf(args[2]);
+                    }
+                    
+                    String projectWithPatchId = null;
+                    if (args.length >= 4) {
+                        projectWithPatchId = String.valueOf(args[3]);
+                    }
+                    
                     if (technique.equals("nmt")) {
                         data.strTechnique = technique;
                     }
@@ -95,8 +106,7 @@ public class controller {
                     data.dirSyntactic = data.dirSyntactic + "-" + technique;
                     dirProject = data.dirMutSrc;// String.valueOf(args[0]);
                     objUtil = new util(dirProject);
-                    data.dirSrcMLBatchFile = dirProject;
-                    Flatten(dirProject);
+                    Flatten(dirProject, projectName, projectWithPatchId);
                     break;
                 case "getalltests":
                     if (args.length < 2) {
@@ -418,7 +428,9 @@ public class controller {
                         String[] arrPatchLine01 = patchLine01.split(Pattern.quote(" "));
                         String srcFilePath = null;
                         for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
-                            srcFilePath = dirPrjSrc + arrPatchLine01[arrPatchLine01.length - 1].replace("b" + strInitialSemiDirOriginal, "/");
+                            //for matching with fixed files as done earlier
+                            //srcFilePath = dirPrjSrc + arrPatchLine01[arrPatchLine01.length - 1].replace("b" + strInitialSemiDirOriginal, "/");
+                            srcFilePath = dirPrjSrc + arrPatchLine01[2].replace("a" + strInitialSemiDirOriginal, "/");
                             if (objUtil.FileExists(srcFilePath)) {
                                 break;
                             } else {
@@ -431,10 +443,26 @@ public class controller {
                         }
                         //HashMap<String, LinkedList<String>> mapPathWithSrcCode = objUtil.TraverseToGetSrcCode(dirPrjSrc, srcFilePath);
                         HashMap<String, LinkedList<String>> mapPathWithSrcCode = new HashMap();
-                        mapPathWithSrcCode.put(srcFilePath, objUtil.ReadFileToList(srcFilePath));
+                        LinkedList<String> lstBuggyFile = objUtil.ReadFileToList(srcFilePath);
+                        if (lstBuggyFile == null || lstBuggyFile.isEmpty()) {
+                            continue;
+                        }
+                        mapPathWithSrcCode.put(srcFilePath, lstBuggyFile);
                         if (mapPathWithSrcCode == null || mapPathWithSrcCode.isEmpty()) {
                             continue;
                         }
+
+                        //here i intend to get the srcml of code to get function start and function stop line #
+                        String strBuggyFileXML = objUtil.ExecuteProcess(data.strInitialCommandForsrcml, srcFilePath);
+                        if (strBuggyFileXML == null) {
+                            continue;
+                        }
+                        strBuggyFileXML = strBuggyFileXML.substring(strBuggyFileXML.indexOf("<unit"), strBuggyFileXML.length());
+                        String[] arrBuggyFileXML = strBuggyFileXML.split(Pattern.quote("\\r\\n"));
+                        for(int i = 0; i < arrBuggyFileXML.length; i ++){
+                            
+                        }
+                        
                         String strSrcPath = null;
                         LinkedList<String> lstSrc = null;
                         for (String key : mapPathWithSrcCode.keySet()) {
@@ -603,7 +631,7 @@ public class controller {
         }
     }
 
-    void Flatten(String dirProject) throws Exception {
+    void Flatten(String dirProject, String projectName, String projectWithPatchId) throws Exception {
         try {
             if (!objUtil.FileExists(dirProject)) {
                 System.out.println(dirProject + " does not exist.");
@@ -621,9 +649,22 @@ public class controller {
                 }
 
                 String strProjectWithPatchId = folderProject.getName();
+                String[] arrPrjWithPatchId = strProjectWithPatchId.split(Pattern.quote("_"));
+                String strProjectName = arrPrjWithPatchId[0];
+                if(projectName != null && projectName.trim().isEmpty() == false){
+                    if(strProjectName.equals(projectName) == false){
+                        continue;
+                    }
+                }
+                if(projectWithPatchId != null && projectWithPatchId.trim().isEmpty() == false){
+                    if(strProjectWithPatchId.equals(projectWithPatchId) == false){
+                        continue;
+                    }
+                }
                 String dirProjectWithPatchId = folderProject.getPath().replace("\\", "/");
                 System.out.println("flattening " + dirProjectWithPatchId);
                 String dirProjectWithPatchIdSyntactic = data.dirSyntactic + "/" + strProjectWithPatchId;
+                data.dirSrcMLBatchFile = dirProjectWithPatchIdSyntactic;
                 if (objUtil.FileExists(dirProjectWithPatchIdSyntactic + "/" + data.strFlatteningMapFileName)) {
                     continue;
                 }
@@ -674,7 +715,9 @@ public class controller {
                     }
 
                     HashMap<String, String> mapFlattenedBuggyFns = objUtil.GetAllFlattenedFns(dirBuggyFile, lstMap);
-
+                    if(mapFlattenedBuggyFns == null || mapFlattenedBuggyFns.isEmpty()){
+                        continue;
+                    }
                     for (String strMap : lstMap) {
                         if (strMap == null || strMap.trim().isEmpty()) {
                             continue;
