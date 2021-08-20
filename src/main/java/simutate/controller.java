@@ -529,8 +529,8 @@ public class controller {
         }
     }
 
-    private Integer FindFunctionNameUsingBeginEndAndAddToList(String strPrjWithPatchId, LinkedList<HashMap<Integer, Integer>> lstFirstMinusAndPlus
-            , HashMap<String, LinkedList<Integer>> mapFnStartEnd, HashMap<String, String> mapMutantsWithFns) {
+    private Integer FindFunctionNameUsingBeginEndAndAddToList(String strPrjWithPatchId, LinkedList<HashMap<Integer, Integer>> lstFirstMinusAndPlus,
+            HashMap<String, LinkedList<Integer>> mapFnStartEnd, HashMap<String, String> mapMutantsWithFns) {
         try {
             Integer count = 0;
             for (HashMap<Integer, Integer> mapFirstMinusAndPlus : lstFirstMinusAndPlus) {
@@ -716,10 +716,18 @@ public class controller {
                         continue;
                     }
 
+                    //Was done earlier to get all functions
+                    /*
                     HashMap<String, String> mapFlattenedBuggyFns = objUtil.GetAllFlattenedFns(dirBuggyFile, lstMap);
                     if (mapFlattenedBuggyFns == null || mapFlattenedBuggyFns.isEmpty()) {
                         continue;
                     }
+                     */
+                    String strFlattenedFile = objUtil.GetFlattenedFile(dirBuggyFile);
+                    if (strFlattenedFile == null || strFlattenedFile.isEmpty()) {
+                        continue;
+                    }
+
                     for (String strMap : lstMap) {
                         if (strMap == null || strMap.trim().isEmpty()) {
                             continue;
@@ -729,16 +737,16 @@ public class controller {
                         String strFnPhrase = arrMap[1];
                         String dirMutant = dirParent + "/" + strMutantFileName;
                         String strMapStringToBeWritten = strMap + data.strPipe + strSemiPathToBuggy + data.strPipe + strBuggyFileName;
-                        String strFlattenedMutatedFn = objUtil.GetFlattenedFn(dirMutant, strFnPhrase);
-                        String strFlattenedBuggyFn = mapFlattenedBuggyFns.get(strFnPhrase);
+                        String strFlattenedMutatedFile = objUtil.GetFlattenedFile(dirMutant);
+                        String strFlattenedBuggyFile = strFlattenedFile; //mapFlattenedBuggyFns.get(strFnPhrase);
                         if (strMapStringToBeWritten == null || strMapStringToBeWritten.isEmpty()
-                                || strFlattenedMutatedFn == null || strFlattenedMutatedFn.isEmpty()
-                                || strFlattenedBuggyFn == null || strFlattenedBuggyFn.isEmpty()) {
+                                || strFlattenedMutatedFile == null || strFlattenedMutatedFile.isEmpty()
+                                || strFlattenedBuggyFile == null || strFlattenedBuggyFile.isEmpty()) {
                             continue;
                         }
                         objUtil.lstFlatteningMap.add(strMapStringToBeWritten);
-                        objUtil.lstFlattenedMutatedFns.add(strFlattenedMutatedFn);
-                        objUtil.lstFlattenedBuggyFns.add(strFlattenedBuggyFn);
+                        objUtil.lstFlattenedMutatedFns.add(strFlattenedMutatedFile);
+                        objUtil.lstFlattenedBuggyFns.add(strFlattenedBuggyFile);
                     }
                 }
             }

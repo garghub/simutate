@@ -2014,4 +2014,31 @@ public class util {
             return null;
         }
     }
+
+    public String GetFlattenedFile(String strCodeFilePath) {
+        try {
+            String retStr;
+            String strCleanedXML;
+            System.out.println("processing " + strCodeFilePath + " ...");
+            String strFileXML = ExecuteProcess(data.strInitialCommandForsrcml, strCodeFilePath);
+            if (strFileXML == null) {
+                return null;
+            }
+            strCleanedXML = ReturnEssentialTextFromXML(strFileXML, "", "", true);
+            if (data.strTechnique != null && data.strTechnique.isEmpty() == false) {
+                //To add spaces in case of nmt
+                strCleanedXML = strCleanedXML.replace("><", "> <").replace("[]", "[ ]").replace("()", "( )");
+            }
+            retStr = ConvertsrcMLToString(strCleanedXML);
+            if (retStr == null || retStr.isEmpty()) {
+                return null;
+            }
+            retStr = retStr.replace("\r\n", " ").replaceAll("\\s{2,}", " ").trim();
+            return retStr;
+        } catch (Exception ex) {
+            System.out.println("error at util.GetFlattenedFile() while processing file at " + strCodeFilePath);
+            ex.printStackTrace();
+            return null;
+        }
+    }
 }
