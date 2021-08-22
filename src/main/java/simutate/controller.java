@@ -697,7 +697,9 @@ public class controller {
                 } else if (fileInside.getName().equals(data.strMapFileName)) {
                     String dirMap = fileInside.getPath().replace("\\", "/");
                     LinkedList<String> lstMap = objUtil.ReadFileToList(dirMap);
-
+                    if(lstMap == null || lstMap.isEmpty()){
+                        continue;
+                    }
                     String dirParent = fileInside.getParent().replace("\\", "/");
                     File folderParent = new File(dirParent);
                     String strParentName = folderParent.getName();
