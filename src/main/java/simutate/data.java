@@ -158,6 +158,6 @@ public class data {
             "/src/java/", "/src/main/java/", "/gson/src/main/java/", "/src/"
     ));
     static LinkedList<String> lstAccessModifiers = new LinkedList<String>(Arrays.asList(
-            "private", "public", "protected", "{"
+            "private", "public", "protected", "final", "{"
     ));
 }

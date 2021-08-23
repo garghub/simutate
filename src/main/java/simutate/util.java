@@ -1384,15 +1384,15 @@ public class util {
         }
     }
 
-    Boolean GetDefects4jExecutionSuccess(String dirPrjBuggy, String projectName, String patchId) {
+    Boolean GetDefects4jExecutionSuccess(String dirPrjBuggyOrFixed, String strBuggyOrFixed, String projectName, String patchId) {
         {
             try {
-                if (!FileExists(dirPrjBuggy)) {
-                    CreateDirectory(dirPrjBuggy);
+                if (!FileExists(dirPrjBuggyOrFixed)) {
+                    CreateDirectory(dirPrjBuggyOrFixed);
                 }
                 String strCommandForDefects4j = data.strInitialCommandForDefects4j + data.strInitialCommandForCheckout01 + projectName
-                        + data.strInitialCommandForCheckout02 + patchId + data.strBuggy
-                        + data.strInitialCommandForCheckout03 + dirPrjBuggy;
+                        + data.strInitialCommandForCheckout02 + patchId + strBuggyOrFixed
+                        + data.strInitialCommandForCheckout03 + dirPrjBuggyOrFixed;
                 //String[] arrString = ExecuteProcessGetErrorCodeAndSaveOutput(strCommandForDefects4j);
                 //Integer errorCode = Integer.parseInt(arrString[0]);
 
@@ -1400,8 +1400,8 @@ public class util {
                 if (errorCode != 0) {
                     return false;
                 }
-                File folderPrjBuggy = new File(dirPrjBuggy);
-                if (folderPrjBuggy.listFiles().length == 0) {
+                File folderPrjBuggyOrFixed = new File(dirPrjBuggyOrFixed);
+                if (folderPrjBuggyOrFixed.listFiles().length == 0) {
                     return false;
                 } else {
                     return true;

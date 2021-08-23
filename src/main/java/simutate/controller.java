@@ -611,7 +611,7 @@ public class controller {
                 if (objUtil.FileExists(dirPrjBuggy)) {
                     objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirPrjBuggy, null);
                 }
-                success = objUtil.GetDefects4jExecutionSuccess(dirPrjBuggy, projectName, patchId);
+                success = objUtil.GetDefects4jExecutionSuccess(dirPrjBuggy, data.strBuggy, projectName, patchId);
                 if (!success) {
                     continue;
                 }
@@ -619,7 +619,7 @@ public class controller {
                 if (objUtil.FileExists(dirPrjFixed)) {
                     objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirPrjFixed, null);
                 }
-                success = objUtil.GetDefects4jExecutionSuccess(dirPrjFixed, projectName, patchId);
+                success = objUtil.GetDefects4jExecutionSuccess(dirPrjFixed, data.strFixed, projectName, patchId);
                 if (!success) {
                     continue;
                 }
@@ -800,7 +800,7 @@ public class controller {
                 if (objUtil.FileExists(dirPrjBuggy)) {
                     objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirPrjBuggy, null);
                 }
-                Boolean success = objUtil.GetDefects4jExecutionSuccess(dirPrjBuggy, projectName, patchId);
+                Boolean success = objUtil.GetDefects4jExecutionSuccess(dirPrjBuggy, data.strBuggy, projectName, patchId);
                 if (!success) {
                     continue;
                 }
