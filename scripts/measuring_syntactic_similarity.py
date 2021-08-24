@@ -31,15 +31,23 @@ def get_cosine_sim(reference, candidate):
 
 n = len(sys.argv)
 if n < 3 :
-    print("\nplease pass as arguments - 1) the name of the technique (e.g. nmt / codebert / ...) and 2) bug id (e.g Cli_1 / Jsoup_3 / ...)")
+    print("\nplease pass as arguments - 1) the name of the technique (e.g. nmt / codebert / ...) and 2) project name (e.g Cli / Jsoup / ...)")
+    print("\noptionally you can pass as argument - 3) bug id (e.g Cli_1 / Jsoup_3 / ...)")
     exit()
 
 dirMain = "/home/agarg/ag/mutation/syntactic-" + sys.argv[1]
-bugid = sys.argv[2]
+project = sys.argv[2]
+bugid = ""
+if n >= 4:
+    bugid = sys.argv[3]
 
 lstOverallSyntacticSimilarity = []
 for strProjectWithPatchId in os.listdir(dirMain):
-    if strProjectWithPatchId != bugid:
+    arrStr = strProjectWithPatchId.split("_")
+    fetchedProject = arrStr[0]
+    if fetchedProject != project:
+        continue
+    if bugid != "" and strProjectWithPatchId != bugid:
         continue
     print("processing syntactic similarity for", strProjectWithPatchId)
     dirProjectWithPatchId = dirMain + "/" + strProjectWithPatchId
