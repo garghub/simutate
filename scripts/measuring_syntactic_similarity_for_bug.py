@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
+import sys
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.translate.bleu_score import sentence_bleu
@@ -31,12 +29,25 @@ def get_cosine_sim(reference, candidate):
                       index=['reference', 'candidate'])
     return (1 - cosine(df[:1], df[1:2]))
 
-dirMain = "/home/agarg/ag/mutation/syntactic-codebert"
+n = len(sys.argv)
+if n < 3 :
+    print("\nplease pass as arguments - 1) the name of the technique (e.g. nmt / codebert / ...) and 2) bug id (e.g Cli_1 / Jsoup_3 / ...)")
+    exit()
+
+dirMain = "/home/agarg/ag/mutation/syntactic-" + sys.argv[1]
+bugid = sys.argv[2]
+
 lstOverallSyntacticSimilarity = []
 for strProjectWithPatchId in os.listdir(dirMain):
+    if strProjectWithPatchId != bugid:
+        continue
     print("processing syntactic similarity for", strProjectWithPatchId)
     dirProjectWithPatchId = dirMain + "/" + strProjectWithPatchId
-    
+    dirSyntacticSimilarity = dirProjectWithPatchId + "/syntacticsimilarity.txt"
+    fileSyntacticSimilarity = Path(dirSyntacticSimilarity)
+    if fileSyntacticSimilarity.is_file():
+        print(dirSyntacticSimilarity, "already exists.")
+        continue
     dirflattenedbuggyfns = dirProjectWithPatchId + "/flattenedbuggyfns.txt"
     fileflattenedbuggyfns = Path(dirflattenedbuggyfns)
     if not fileflattenedbuggyfns.is_file():
@@ -85,17 +96,6 @@ for strProjectWithPatchId in os.listdir(dirMain):
                                       + "JACCARD: " + "{:.2f}".format(jaccardsimilarity) + " | " 
                                       + "COSINE: " + "{:.2f}".format(cosinesimilarity))
     
-    with open(dirProjectWithPatchId + "/syntacticsimilarity.txt", 'w') as filehandle:
+    with open(dirSyntacticSimilarity, 'w') as filehandle:
         for listitem in lstSyntacticSimilarity:
             filehandle.write('%s\n' % listitem)
-    
-with open(dirMain + "/overallsyntacticsimilarity.txt", 'w') as filehandle:
-    for listitem in lstOverallSyntacticSimilarity:
-        filehandle.write('%s\n' % listitem)
-
-
-# In[ ]:
-
-
-
-

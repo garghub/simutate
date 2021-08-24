@@ -697,7 +697,7 @@ public class controller {
                 } else if (fileInside.getName().equals(data.strMapFileName)) {
                     String dirMap = fileInside.getPath().replace("\\", "/");
                     LinkedList<String> lstMap = objUtil.ReadFileToList(dirMap);
-                    if(lstMap == null || lstMap.isEmpty()){
+                    if (lstMap == null || lstMap.isEmpty()) {
                         continue;
                     }
                     String dirParent = fileInside.getParent().replace("\\", "/");
@@ -706,14 +706,16 @@ public class controller {
                     String strBuggyFileName = strParentName.replace(data.strMutants, "") + data.strSupportedLangExt;
                     String strSemiPathToBuggy = dirParent.replace(dirProject + "/" + strProjectWithPatchId + "/", "").replace("/" + strParentName, "");
                     String dirBuggyFile = "";
-                    for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
-                        dirBuggyFile = data.dirSimulationForBugs + "/" + strProjectWithPatchId + "/b" + strInitialSemiDirOriginal + strSemiPathToBuggy + "/" + strBuggyFileName;
-                        if (objUtil.FileExists(dirBuggyFile)) {
-                            break;
+                    dirBuggyFile = data.dirSimulationForBugs + "/" + strProjectWithPatchId + "/b" + "/" + strSemiPathToBuggy + "/" + strBuggyFileName;
+                    if (!objUtil.FileExists(dirBuggyFile)) {
+                        for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
+                            dirBuggyFile = data.dirSimulationForBugs + "/" + strProjectWithPatchId + "/b" + strInitialSemiDirOriginal + strSemiPathToBuggy + "/" + strBuggyFileName;
+                            if (objUtil.FileExists(dirBuggyFile)) {
+                                break;
+                            }
+                            dirBuggyFile = "";
                         }
-                        dirBuggyFile = "";
                     }
-
                     if (dirBuggyFile == null || dirBuggyFile.isEmpty()) {
                         continue;
                     }

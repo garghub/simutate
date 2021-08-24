@@ -18,8 +18,8 @@ public class main {
         try {
             //debug
             /*
-            args = new String[]{data.strFlatten, "codebert", "Cli", "Cli_1"};
-             */
+            args = new String[]{data.strFlatten, "ibir", "Cli", "Cli_1"};
+            */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
                 System.out.println("1. a task to perform (e.g. " + data.strAbstract + " / " + data.strUnabstract + " / " + data.strProcessSourcePatches

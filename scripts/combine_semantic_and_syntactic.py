@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 import os
+import sys
+
+n = len(sys.argv)
+if n < 2 :
+    print("\nplease pass as argument - the name of the technique (e.g. nmt / codebert / ...)")
+    exit()
 
 dirMain = "/home/agarg/ag/mutation"
-technique = "codebert"
+technique = sys.argv[1]
 
 def ReadFileToList(dirFile):
     lst = []
@@ -51,10 +54,3 @@ os.makedirs(dirSimilarity)
 with open(dirSimilarityFile, 'w') as filehandle:
     for listitem in lstOverallSimilarity:
         filehandle.write('%s\n' % listitem)
-
-
-# In[ ]:
-
-
-
-

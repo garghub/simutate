@@ -6,14 +6,20 @@
 
 import pandas as pd
 import os
+import sys
 import seaborn as sns
 import scipy.stats as stats
 
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 
+n = len(sys.argv)
+if n < 2 :
+    print("\nplease pass as argument - the name of the technique (e.g. nmt / codebert / ...)")
+    exit()
+
 dirMain = "/home/agarg/ag/mutation"
-technique = "nmt"
+technique = sys.argv[1]
 
 def ReadFileToList(dirFile):
     lst = []
