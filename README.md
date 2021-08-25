@@ -37,6 +37,20 @@ java -jar [target-repository]/simutate-1.0.jar compare codebert
 
 -----------------------------------------------------------------------------------------------------------------------------
 
+options based on tasks provided by python scripts (here please change /home/agarg/ag/simutate to point to your repository location):
+
+python3 /home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py codebert Cli
+
+python3 /home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py codebert Cli Cli_1
+
+python3 /home/agarg/ag/simutate/scripts/measuring_overall_syntactic_similarity.py codebert
+
+python3 /home/agarg/ag/simutate/scripts/plot.py codebert
+
+python3 /home/agarg/ag/simutate/scripts/combine_semantic_and_syntactic.py codebert
+
+-----------------------------------------------------------------------------------------------------------------------------
+
 NOTE: please do not forget to modify below variables in data.java file to specify your desired repository locations and dependencies
 
 static String dirMain = isWindows ? "C:/GitHub/mutation" : "/home/agarg/ag/mutation";
