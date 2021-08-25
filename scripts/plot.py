@@ -22,6 +22,7 @@ dirMain = "/home/agarg/ag/mutation"
 technique = sys.argv[1]
 
 def ReadFileToList(dirFile):
+    print("\nreading ", dirFile)
     lst = []
     with open(dirFile, 'r') as filehandle:
         for line in filehandle:
@@ -32,6 +33,7 @@ def ReadFileToList(dirFile):
     return lst
 
 def hist_dist(df, filename, filenamesuffix):
+    print("\nplotting for ", filename, " and ", filenamesuffix)
     figure(figsize=(20, 10))
     # plot 1:
     ax = plt.subplot(3, 1, 1)
@@ -74,7 +76,7 @@ def hist_dist(df, filename, filenamesuffix):
     plt.show()
 
 def scatter_plot(data, parax, paray, filename, filenamesuffix):
-    
+    print("\nplotting for ", filename, " and ", filenamesuffix)
     axeLeft = sns.jointplot(data=data, x=parax, y=paray, kind="reg")
     axeLeft.set_axis_labels(xlabel=parax, ylabel=paray, fontsize=12)
     pr_axeLeft, pp_axeLeft = stats.pearsonr(data[parax], data[paray])
@@ -102,6 +104,7 @@ def scatter_plot(data, parax, paray, filename, filenamesuffix):
     print()
 
 def plot_this(df, filenamesuffix):
+    print("\nplotting ", filenamesuffix)
     #df = df.sort_values(['OCHIAI', 'BLEU'], ascending=True)
     #df = df.reset_index(drop=True)
     #hist_dist(df, "plot-" + technique, filenamesuffix)
@@ -130,6 +133,7 @@ for str in lstOverallSimilarity:
                , 'COSINE':float(arrStr[5].replace("COSINE: ", ""))
               }
     df = df.append(new_row, ignore_index=True)
+    print("added ", new_row)
 df = df.loc[df['OCHIAI'] >= 0]
 
 plot_this(df, "all")
