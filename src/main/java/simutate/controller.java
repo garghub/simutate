@@ -471,6 +471,21 @@ public class controller {
                         }
 
                         String strMapFilePath = strSrcPath.replace(data.dirBuggySrc, data.dirMutSrc).replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
+                        if (objUtil.FileExists(strMapFilePath) == false) {
+                            String firstHalfMapFilePath = data.dirMutSrc + "/" + strPrjWithPatchId;
+                            String otherHalfMapFilePath = strMapFilePath.replace(firstHalfMapFilePath + "/", "");
+                            strMapFilePath = "";
+                            for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
+                                strMapFilePath = firstHalfMapFilePath + strInitialSemiDirOriginal + otherHalfMapFilePath;
+                                if (objUtil.FileExists(strMapFilePath)) {
+                                    break;
+                                }
+                                strMapFilePath = "";
+                            }
+                        }
+                        if(strMapFilePath.isEmpty()){
+                            continue;
+                        }
                         HashMap<String, String> mapMutantsWithFns = objUtil.GetMutantsWithFnsFromMapFile(strMapFilePath);
                         if (mapMutantsWithFns == null || mapMutantsWithFns.isEmpty()) {
                             continue;

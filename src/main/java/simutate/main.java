@@ -18,7 +18,7 @@ public class main {
         try {
             //debug
             /*
-            args = new String[]{data.strFlatten, "ibir", "Cli", "Cli_1"};
+            args = new String[]{data.strProcessSourcePatches, "ibir"};
             */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
