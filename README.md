@@ -10,30 +10,30 @@ stuff you require before runnning
 
 mvn clean package
 
-java -jar [target-repository]/simutate-1.0.jar [arguments]
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar [arguments]
 
 
 options based on tasks:
 
-java -jar [target-repository]/simutate-1.0.jar simulate codebert Math
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar simulate codebert Math
 
-java -jar [target-repository]/simutate-1.0.jar simulate codebert Math Math_1 <-- this will run simulation for only Math_1 bug and skip the rest
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar simulate codebert Math Math_1 <-- this will run simulation for only Math_1 bug and skip the rest
 
-java -jar [target-repository]/simutate-1.0.jar flatten codebert
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flatten codebert
 
-java -jar [target-repository]/simutate-1.0.jar flatten codebert Math <-- this will run flattening for only Math related bugs and skip the rest
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flatten codebert Math <-- this will run flattening for only Math related bugs and skip the rest
 
-java -jar [target-repository]/simutate-1.0.jar flatten codebert Math Math_1 <-- this will run flattening for only Math_1 bug id and skip the rest
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flatten codebert Math Math_1 <-- this will run flattening for only Math_1 bug id and skip the rest
 
-java -jar [target-repository]/simutate-1.0.jar getalltests codebert
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar getalltests codebert
 
-java -jar [target-repository]/simutate-1.0.jar processsourcepatches codebert
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processsourcepatches codebert
 
-java -jar [target-repository]/simutate-1.0.jar abstract
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar abstract
 
-java -jar [target-repository]/simutate-1.0.jar unabstract
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar unabstract
 
-java -jar [target-repository]/simutate-1.0.jar compare codebert
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar compare codebert
 
 -----------------------------------------------------------------------------------------------------------------------------
 
