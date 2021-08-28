@@ -18,11 +18,11 @@ import java.util.regex.Pattern;
  * @author aayush.garg
  */
 public class controller {
-
+    
     util objUtil;
     LinkedList<String> lstProcessedFiles;
     String dirProject;
-
+    
     void init(String[] args) throws Exception {
         try {
             String task = String.valueOf(args[0]);
@@ -73,13 +73,13 @@ public class controller {
                     if (args.length >= 4) {
                         data.dirBugId = String.valueOf(args[3]);
                     }
-
+                    
                     data.strSimulationFileName = "simulation-" + data.strProjectNameForSimulation;
                     if (data.dirBugId != null && data.dirBugId.isEmpty() == false) {
                         data.strSimulationFileName += "-" + data.dirBugId;
                     }
                     data.strSimulationFileName += ".txt";
-
+                    
                     PerformSimulation(dirProject);
                     break;
                 case "flatten":
@@ -89,17 +89,17 @@ public class controller {
                         break;
                     }
                     technique = String.valueOf(args[1]);
-
+                    
                     String projectName = null;
                     if (args.length >= 3) {
                         projectName = String.valueOf(args[2]);
                     }
-
+                    
                     String projectWithPatchId = null;
                     if (args.length >= 4) {
                         projectWithPatchId = String.valueOf(args[3]);
                     }
-
+                    
                     if (technique.equals("nmt")) {
                         data.strTechnique = technique;
                     }
@@ -137,6 +137,18 @@ public class controller {
                     data.dirSrcMLBatchFile = dirProject;
                     Compare(dirProject);
                     break;
+                case "processlocationmapping":
+                    if (args.length < 2) {
+                        System.out.println("NOTE: for task \"" + data.strProcessLocationMapping + "\", please pass below as additional arguments and try again");
+                        System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
+                        break;
+                    }
+                    technique = String.valueOf(args[1]);
+                    data.dirMutSrc = data.dirMutSrc + "-" + technique;
+                    dirProject = data.dirMutSrc;
+                    objUtil = new util(dirProject);
+                    ProcessLocationMapping(dirProject);
+                    break;
                 default:
                     System.out.println("wrong choice of task. available choices : " + data.strAbstract + " / " + data.strUnabstract
                             + " / " + data.strProcessSourcePatches + " / " + data.strSimulate + " / " + data.strFlatten + " / " + data.strGetAllTests);
@@ -146,7 +158,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void RunAbstraction(String dirProject) throws Exception {
         try {
             //String dirSrcCode;
@@ -169,7 +181,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void traverse(String dirSrcCode) throws Exception {
         try {
             File folderSrcCode = new File(dirSrcCode);
@@ -192,7 +204,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void process(String strCodeFilePath) throws Exception {
         try {
             objUtil.ProcessClassFile(strCodeFilePath);
@@ -201,7 +213,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void RunUnabstraction(String dirProject) throws Exception {
         try {
             objUtil.lstMutatedAbsFns = objUtil.ReadFileToList(dirProject + "/" + data.strGenRhsFileName);
@@ -225,7 +237,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     private void Unabstract(String strAbsFnLoc, String strMutatedAbsFn) throws Exception {
         try {
             System.err.println("proceeding to unabstract " + strMutatedAbsFn);
@@ -289,7 +301,7 @@ public class controller {
                 lstMutatedClass.add(str);
             }
             objUtil.WriteListToFile(dirMutants, strMutantName, lstMutatedClass);
-
+            
             LinkedList<String> lstMap = new LinkedList();
             if (objUtil.FileExists(strMapFilePath)) {
                 lstMap = objUtil.ReadFileToList(strMapFilePath);
@@ -302,7 +314,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     private HashMap<String, String> GetMappingFromList(LinkedList<String> lstMap) throws Exception {
         try {
             HashMap<String, String> map = new HashMap();
@@ -346,7 +358,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void ProcessSourcePatches(String dirProject) throws Exception {
         try {
             if (!objUtil.FileExists(dirProject)) {
@@ -373,7 +385,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void traversePatchDir(String dirSrcCode) throws Exception {
         try {
             File folderSrcCode = new File(dirSrcCode);
@@ -420,7 +432,7 @@ public class controller {
                             }
                         }
                     }
-
+                    
                     System.out.println("patch includes changes in " + lstMultipleFilePatches.size() + " files.");
                     Integer filePatchSuccess = 0;
                     for (Integer patchNum : lstMultipleFilePatches.keySet()) {
@@ -452,9 +464,9 @@ public class controller {
                         if (mapPathWithSrcCode == null || mapPathWithSrcCode.isEmpty()) {
                             continue;
                         }
-
+                        
                         HashMap<String, LinkedList<Integer>> mapFnStartEnd = objUtil.GetFunctionsInBuggyFileStartEnd(srcFilePath, lstBuggyFile);
-
+                        
                         String strSrcPath = null;
                         LinkedList<String> lstSrc = null;
                         for (String key : mapPathWithSrcCode.keySet()) {
@@ -469,7 +481,7 @@ public class controller {
                         if (lstFirstMinusAndPlus == null || lstFirstMinusAndPlus.isEmpty()) {
                             continue;
                         }
-
+                        
                         String strMapFilePath = strSrcPath.replace(data.dirBuggySrc, data.dirMutSrc).replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
                         if (objUtil.FileExists(strMapFilePath) == false) {
                             String firstHalfMapFilePath = data.dirMutSrc + "/" + strPrjWithPatchId;
@@ -483,7 +495,7 @@ public class controller {
                                 strMapFilePath = "";
                             }
                         }
-                        if(strMapFilePath.isEmpty()){
+                        if (strMapFilePath.isEmpty()) {
                             continue;
                         }
                         HashMap<String, String> mapMutantsWithFns = objUtil.GetMutantsWithFnsFromMapFile(strMapFilePath);
@@ -522,7 +534,7 @@ public class controller {
             for (HashMap<Integer, Integer> mapFirstMinusAndPlus : lstFirstMinusAndPlus) {
                 for (Integer firstMinus : mapFirstMinusAndPlus.keySet()) {
                     Integer firstPlus = mapFirstMinusAndPlus.get(firstMinus);
-
+                    
                     if (firstMinus == 0) {
                         firstMinus = firstPlus;
                     }
@@ -543,7 +555,7 @@ public class controller {
             return 0;
         }
     }
-
+    
     private Integer FindFunctionNameUsingBeginEndAndAddToList(String strPrjWithPatchId, LinkedList<HashMap<Integer, Integer>> lstFirstMinusAndPlus,
             HashMap<String, LinkedList<Integer>> mapFnStartEnd, HashMap<String, String> mapMutantsWithFns) {
         try {
@@ -551,7 +563,7 @@ public class controller {
             for (HashMap<Integer, Integer> mapFirstMinusAndPlus : lstFirstMinusAndPlus) {
                 for (Integer firstMinus : mapFirstMinusAndPlus.keySet()) {
                     Integer firstPlus = mapFirstMinusAndPlus.get(firstMinus);
-
+                    
                     if (firstMinus == 0) {
                         firstMinus = firstPlus;
                     }
@@ -571,7 +583,7 @@ public class controller {
             return 0;
         }
     }
-
+    
     void PerformSimulation(String dirProject) throws Exception {
         try {
             if (!objUtil.FileExists(dirProject)) {
@@ -585,7 +597,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void traverseMutantsDir(String dirSrcCode) throws Exception {
         try {
             File folderSrcCode = new File(dirSrcCode);
@@ -604,7 +616,7 @@ public class controller {
                         continue;
                     }
                 }
-
+                
                 System.out.println("processing " + strPrjWithPatchId);
                 String[] arrPrjWithPatchId = strPrjWithPatchId.split(Pattern.quote("_"));
                 String projectName = arrPrjWithPatchId[0];
@@ -617,7 +629,7 @@ public class controller {
                 }
                 String patchId = arrPrjWithPatchId[1];
                 String dirPrjSim = data.dirSimulation + "/" + strPrjWithPatchId;
-
+                
                 String dirPrjBuggy = dirPrjSim + "/" + data.strBuggy;
                 String dirPrjFixed = dirPrjSim + "/" + data.strFixed;
                 Boolean success;
@@ -647,7 +659,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void Flatten(String dirProject, String projectName, String projectWithPatchId) throws Exception {
         try {
             if (!objUtil.FileExists(dirProject)) {
@@ -658,13 +670,13 @@ public class controller {
                 System.out.println(data.dirSimulationForBugs + " does not exist.");
                 return;
             }
-
+            
             File folderMain = new File(dirProject);
             for (File folderProject : folderMain.listFiles()) {
                 if (!folderProject.isDirectory()) {
                     continue;
                 }
-
+                
                 String strProjectWithPatchId = folderProject.getName();
                 String[] arrPrjWithPatchId = strProjectWithPatchId.split(Pattern.quote("_"));
                 String strProjectName = arrPrjWithPatchId[0];
@@ -685,12 +697,12 @@ public class controller {
                 if (objUtil.FileExists(dirProjectWithPatchIdSyntactic + "/" + data.strFlatteningMapFileName)) {
                     continue;
                 }
-
+                
                 objUtil.lstFlatteningMap = new LinkedList();
                 objUtil.lstFlattenedMutatedFns = new LinkedList();
                 objUtil.lstFlattenedBuggyFns = new LinkedList();
                 TraverseForFlattening(strProjectWithPatchId, dirProjectWithPatchId);
-
+                
                 objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlatteningMapFileName, objUtil.lstFlatteningMap);
                 objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlattenedMutatedFnsFileName, objUtil.lstFlattenedMutatedFns);
                 objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlattenedBuggyFnsFileName, objUtil.lstFlattenedBuggyFns);
@@ -702,7 +714,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void TraverseForFlattening(String strProjectWithPatchId, String dirMutants) throws Exception {
         try {
             File folderMutants = new File(dirMutants);
@@ -746,7 +758,7 @@ public class controller {
                     if (strFlattenedFile == null || strFlattenedFile.isEmpty()) {
                         continue;
                     }
-
+                    
                     for (String strMap : lstMap) {
                         if (strMap == null || strMap.trim().isEmpty()) {
                             continue;
@@ -774,7 +786,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void GetAllTests(String dirProject) throws Exception {
         try {
             if (!objUtil.FileExists(dirProject)) {
@@ -792,7 +804,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     void traverseMutantsDirToGetAllTests(String dirSrcCode) throws Exception {
         try {
             File folderSrcCode = new File(dirSrcCode);
@@ -810,7 +822,7 @@ public class controller {
                 String projectName = arrPrjWithPatchId[0];
                 String patchId = arrPrjWithPatchId[1];
                 String dirPrjSim = data.dirSimulation + "/" + strPrjWithPatchId;
-
+                
                 String dirPrjBuggy = dirPrjSim + "/" + data.strBuggy;
 
                 //downloading bug
@@ -838,7 +850,7 @@ public class controller {
             throw ex;
         }
     }
-
+    
     private void Compare(String dirProject) throws Exception {
         try {
             File folderSimulation = new File(dirProject);
@@ -910,6 +922,70 @@ public class controller {
             objUtil.WriteListToFile(dirOverallSemantic, data.strOverallSemanticSimilarityFileName, lstOverallSemanticSimilarity);
         } catch (Exception ex) {
             System.out.println("error at controller.PerformComparison()");
+            throw ex;
+        }
+    }
+    
+    void ProcessLocationMapping(String dirProject) throws Exception {
+        try {
+            if (!objUtil.FileExists(dirProject)) {
+                System.out.println(dirProject + " does not exist.");
+                return;
+            }
+            
+            File folderMain = new File(dirProject);
+            objUtil.lstLocationMap = new LinkedList();
+            for (File folderProject : folderMain.listFiles()) {
+                if (!folderProject.isDirectory()) {
+                    continue;
+                }
+                
+                String strProjectWithPatchId = folderProject.getName();
+                String dirProjectWithPatchId = folderProject.getPath().replace("\\", "/");
+                System.out.println("processing location mapping for " + dirProjectWithPatchId);
+                TraverseForLocationMapping(strProjectWithPatchId, dirProjectWithPatchId);
+            }
+            if (objUtil.FileExists(dirProject + "/" + data.strLocationMapFileName)) {
+                objUtil.DeleteFile(dirProject + "/" + data.strLocationMapFileName);
+            }
+            objUtil.WriteListToFile(dirProject, data.strLocationMapFileName, objUtil.lstLocationMap);
+        } catch (Exception ex) {
+            System.out.println("error at controller.ProcessLocationMapping()");
+            throw ex;
+        }
+    }
+    
+    void TraverseForLocationMapping(String strProjectWithPatchId, String dirMutants) throws Exception {
+        try {
+            File folderMutants = new File(dirMutants);
+            for (File fileInside : folderMutants.listFiles()) {
+                if (fileInside.isDirectory()) {
+                    TraverseForLocationMapping(strProjectWithPatchId, fileInside.getPath());
+                } else if (fileInside.getName().equals(data.strMapFileName)) {
+                    String dirMap = fileInside.getPath().replace("\\", "/");
+                    LinkedList<String> lstMap = objUtil.ReadFileToList(dirMap);
+                    if (lstMap == null || lstMap.isEmpty()) {
+                        continue;
+                    }
+                    
+                    for (String strMap : lstMap) {
+                        if (strMap == null || strMap.trim().isEmpty()) {
+                            continue;
+                        }
+                        String[] arrMap = strMap.split(Pattern.quote(data.strPipe));
+                        String strMutantFileName = arrMap[0];
+                        String strFnPhrase = arrMap[1];
+                        String strLocation = arrMap[arrMap.length - 1];
+                        String strMapStringToBeWritten = strProjectWithPatchId + data.strPipe + strMutantFileName + data.strPipe + strFnPhrase + data.strPipe + strLocation;
+                        if (strMapStringToBeWritten == null || strMapStringToBeWritten.isEmpty()) {
+                            continue;
+                        }
+                        objUtil.lstLocationMap.add(strMapStringToBeWritten);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            System.out.println("error at controller.TraverseForLocationMapping()");
             throw ex;
         }
     }

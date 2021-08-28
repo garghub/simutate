@@ -30,6 +30,7 @@ public class data {
     static String strFlatten = "flatten";
     static String strGetAllTests = "getalltests";
     static String strCompare = "compare";
+    static String strProcessLocationMapping = "processlocationmapping";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
@@ -91,6 +92,7 @@ public class data {
     static String strPipe = " | ";
     static String strColonSpace = ": ";
     static String strPatchFnMap = "patchfnmap.txt";
+    static String strFnMap = "fnmap.txt";
     static String strSrcPatchExt = ".src.patch";
     static String strSrcPatchExtCheck = ".*\\" + strSrcPatchExt + "$";
     static String dirSrc = dirMain + "/experiment";
@@ -137,6 +139,7 @@ public class data {
     static String strAllTestsFileName = "all_tests";
 
     static String strFlatteningMapFileName = "flatteningmap.txt";
+    static String strLocationMapFileName = "locationmap.txt";
     static String strFlattenedMutatedFnsFileName = "flattenedmutatedfns.txt";
     static String strFlattenedBuggyFnsFileName = "flattenedbuggyfns.txt";
     static String strTechnique;

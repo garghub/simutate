@@ -17,19 +17,19 @@ public class main {
     public static void main(String[] args) {
         try {
             //debug
-            /*
-            args = new String[]{data.strProcessSourcePatches, "ibir"};
-            */
+            ///*
+            args = new String[]{data.strProcessLocationMapping, "codebert"};
+            //*/
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
                 System.out.println("1. a task to perform (e.g. " + data.strAbstract + " / " + data.strUnabstract + " / " + data.strProcessSourcePatches
-                        + " / " + data.strSimulate + " / " + data.strFlatten + " / " + data.strGetAllTests + " / " + data.strCompare + " )");
+                        + " / " + data.strSimulate + " / " + data.strFlatten + " / " + data.strGetAllTests + " / " + data.strCompare + " / " + data.strProcessLocationMapping + " )");
                 System.out.println("NOTE: for task \"" + data.strSimulate + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
                 System.out.println("Additional 2. project name to perform simulation for (e.g. Cli)");
                 System.out.println("and");
-                System.out.println("Also for tasks \"" + data.strFlatten + "\", \"" + data.strProcessSourcePatches + "\", \"" + data.strGetAllTests
-                        + "\", and \"" + data.strCompare
+                System.out.println("Also for tasks \"" + data.strFlatten + "\", \"" + data.strProcessSourcePatches + "\", \"" + data.strGetAllTests + "\", \"" + data.strCompare
+                        + "\", and \"" + data.strProcessLocationMapping
                         + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
                 System.out.println("Optional parameters:");

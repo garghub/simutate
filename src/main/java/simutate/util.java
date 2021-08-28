@@ -50,6 +50,7 @@ public class util {
     LinkedList<String> lstFlatteningMap;
     LinkedList<String> lstFlattenedMutatedFns;
     LinkedList<String> lstFlattenedBuggyFns;
+    LinkedList<String> lstLocationMap;
 
     util(String dirProjectPath) {
         dirProject = dirProjectPath;
@@ -1203,7 +1204,7 @@ public class util {
                     continue;
                 }
                 String[] arr = str.split(Pattern.quote(data.strPipe));
-                mapAvailableFns.put(arr[0], arr[1]);
+                mapAvailableFns.put(arr[0], arr[1] + data.strPipe + arr[arr.length - 1]);
             }
             return mapAvailableFns;
         } catch (Exception ex) {
@@ -1301,7 +1302,10 @@ public class util {
                         }
                         trimmedSentence = trimmedSentence.replaceAll("\\s{2,}", " ").replace(" ", "").trim();
                         for (String strMutant : mapMutantsWithFns.keySet()) {
-                            String strAvailableFn = mapMutantsWithFns.get(strMutant);
+                            String strAvailableFnAndLocation = mapMutantsWithFns.get(strMutant);
+                            String[] arrAvailableFnAndLocation = strAvailableFnAndLocation.split(Pattern.quote(data.strPipe));
+                            String strAvailableFn = arrAvailableFnAndLocation[0];
+                            String strLocation = arrAvailableFnAndLocation[1];
                             String trimmedAvailableFn = strAvailableFn;
                             for (String strAccessModifier : data.lstAccessModifiers) {
                                 trimmedAvailableFn = trimmedAvailableFn.replace(strAccessModifier, "");
@@ -1309,11 +1313,12 @@ public class util {
                             trimmedAvailableFn = strAvailableFn.replaceAll("\\s{2,}", " ").replace(" ", "").trim();
                             if (trimmedAvailableFn.contains(trimmedSentence)) {
                                 for (String strAnotherMutant : mapMutantsWithFns.keySet()) {
-                                    String strAnotherFn = mapMutantsWithFns.get(strAnotherMutant);
+                                    String[] arrAnotherMutant = mapMutantsWithFns.get(strAnotherMutant).split(Pattern.quote(data.strPipe));
+                                    String strAnotherFn = arrAnotherMutant[0];
                                     if (strAnotherFn.equals(strAvailableFn) == false) {
                                         continue;
                                     }
-                                    String strToAdd = strPrjWithPatchId + data.strPipe + strAnotherMutant + data.strPipe + strAvailableFn;
+                                    String strToAdd = strPrjWithPatchId + data.strPipe + strAnotherMutant + data.strPipe + strAvailableFn + data.strPipe + strLocation;
                                     if (!lstDiffMappedToFn.contains(strToAdd)) {
                                         lstDiffMappedToFn.add(strToAdd);
                                     }
