@@ -47,9 +47,9 @@ python3 /home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py codebe
 
 python3 /home/agarg/ag/simutate/scripts/measuring_overall_syntactic_similarity.py codebert
 
-python3 /home/agarg/ag/simutate/scripts/plot.py codebert
-
 python3 /home/agarg/ag/simutate/scripts/combine_semantic_and_syntactic.py codebert
+
+python3 /home/agarg/ag/simutate/scripts/plot.py codebert
 
 -----------------------------------------------------------------------------------------------------------------------------
 
