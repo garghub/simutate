@@ -25,6 +25,12 @@ java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flatten codebert Math 
 
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flatten codebert Math Math_1 <-- this will run flattening for only Math_1 bug id and skip the rest
 
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flattenfixes codebert
+
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flattenfixes codebert Math <-- this will run flattening for only Math related fixes and skip the rest
+
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar flatten codebert Math Math_1 <-- this will run flattening for only Math_1 fix id and skip the rest
+
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar getalltests codebert
 
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processsourcepatches codebert
@@ -69,7 +75,7 @@ java -jar C:\GitHub\simutate\target\simutate-1.0.jar
 
 please pass below as arguments and try again
 
-1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten / getalltests / compare )
+1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / processlocationmapping )
 
 NOTE: for task "simulate", please pass below as additional arguments and try again
 
@@ -79,7 +85,7 @@ Additional 2. project name to perform simulation for (e.g. Cli)
 
 and
 
-Also for tasks "flatten", "processsourcepatches", "getalltests", and "compare", please pass below as additional arguments and try again
+Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", and "processlocationmapping", please pass below as additional arguments and try again
 
 Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)
 
@@ -89,7 +95,7 @@ Optional parameters for task "simulate" -
 
 Optional 1. bug id to perform simulation for (e.g. Cli_1 / Cli_2 / ...)
 
-Optional parameters for task "flatten" -
+Optional parameters for task "flatten" and "flattenfixes" -
 
 Optional 1. project name to perform flattening for (e.g. Cli)
 
