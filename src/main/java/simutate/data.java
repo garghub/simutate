@@ -16,7 +16,7 @@ import java.util.LinkedList;
 public class data {
 
     static Boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows") ? true : false;
-    static String dirMain = isWindows ? "//atlas/users/aayush.garg/c/github/mutation" : "/home/agarg/ag/mutation"; //C:/GitHub/mutation
+    static String dirMain = isWindows ? "D:/ag/github/mutants_sensitivity" : "/home/agarg/ag/mutation"; ////atlas/users/aayush.garg/c/github/mutation
     static String strCommandExecutionInitial01 = isWindows ? "cmd.exe" : "bash";
     static String strCommandExecutionInitial02 = isWindows ? "/c" : "-c";
     //for this srcml is not in docker
@@ -31,6 +31,7 @@ public class data {
     static String strGetAllTests = "getalltests";
     static String strCompare = "compare";
     static String strProcessLocationMapping = "processlocationmapping";
+    static String strFlattenFixes = "flattenfixes";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
@@ -109,8 +110,9 @@ public class data {
     static String dirSimulation = dirMain + "/" + strSimulation;
     static String strAllTests = "alltests";
     static String dirAllTests = dirMain + "/" + strAllTests;
-    static String dirSimulationForBugs = dirSimulation + "-nmt";
+    static String dirSimulationForBugsOrFixes = dirSimulation + "-nmt";
     static String dirSyntactic = dirMain + "/syntactic";
+    static String dirSyntacticFixes = dirMain + "/syntacticfixes";
     static String strBuggy = "b";
     static String strFixed = "f";
     static String strSimulationFileName;// = "simulation.txt";
@@ -142,6 +144,7 @@ public class data {
     static String strLocationMapFileName = "locationmap.txt";
     static String strFlattenedMutatedFnsFileName = "flattenedmutatedfns.txt";
     static String strFlattenedBuggyFnsFileName = "flattenedbuggyfns.txt";
+    static String strFlattenedFixedFnsFileName = "flattenedfixedfns.txt";
     static String strTechnique;
 
     static String strOchiai = "OCHIAI";

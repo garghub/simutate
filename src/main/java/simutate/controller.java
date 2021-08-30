@@ -27,6 +27,9 @@ public class controller {
         try {
             String task = String.valueOf(args[0]);
             String technique;
+            
+            String projectName = null;
+            String projectWithPatchId = null;
             switch (task) {
                 case "abstract":
                     dirProject = data.dirSrc;// String.valueOf(args[0]);
@@ -90,12 +93,11 @@ public class controller {
                     }
                     technique = String.valueOf(args[1]);
                     
-                    String projectName = null;
+                    
                     if (args.length >= 3) {
                         projectName = String.valueOf(args[2]);
                     }
                     
-                    String projectWithPatchId = null;
                     if (args.length >= 4) {
                         projectWithPatchId = String.valueOf(args[3]);
                     }
@@ -108,6 +110,31 @@ public class controller {
                     dirProject = data.dirMutSrc;// String.valueOf(args[0]);
                     objUtil = new util(dirProject);
                     Flatten(dirProject, projectName, projectWithPatchId);
+                    break;
+                case "flattenfixes":
+                    if (args.length < 2) {
+                        System.out.println("NOTE: for task \"" + data.strFlattenFixes + "\", please pass below as additional arguments and try again");
+                        System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
+                        break;
+                    }
+                    technique = String.valueOf(args[1]);
+                    
+                    if (args.length >= 3) {
+                        projectName = String.valueOf(args[2]);
+                    }
+                    
+                    if (args.length >= 4) {
+                        projectWithPatchId = String.valueOf(args[3]);
+                    }
+                    
+                    if (technique.equals("nmt")) {
+                        data.strTechnique = technique;
+                    }
+                    data.dirMutSrc = data.dirMutSrc + "-" + technique;
+                    data.dirSyntacticFixes = data.dirSyntacticFixes + "-" + technique;
+                    dirProject = data.dirMutSrc;// String.valueOf(args[0]);
+                    objUtil = new util(dirProject);
+                    FlattenFixes(dirProject, projectName, projectWithPatchId);
                     break;
                 case "getalltests":
                     if (args.length < 2) {
@@ -666,8 +693,8 @@ public class controller {
                 System.out.println(dirProject + " does not exist.");
                 return;
             }
-            if (!objUtil.FileExists(data.dirSimulationForBugs)) {
-                System.out.println(data.dirSimulationForBugs + " does not exist.");
+            if (!objUtil.FileExists(data.dirSimulationForBugsOrFixes)) {
+                System.out.println(data.dirSimulationForBugsOrFixes + " does not exist.");
                 return;
             }
             
@@ -700,12 +727,12 @@ public class controller {
                 
                 objUtil.lstFlatteningMap = new LinkedList();
                 objUtil.lstFlattenedMutatedFns = new LinkedList();
-                objUtil.lstFlattenedBuggyFns = new LinkedList();
-                TraverseForFlattening(strProjectWithPatchId, dirProjectWithPatchId);
+                objUtil.lstFlattenedBuggyOrFixedFns = new LinkedList();
+                TraverseForFlattening(strProjectWithPatchId, dirProjectWithPatchId, data.strBuggy);
                 
                 objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlatteningMapFileName, objUtil.lstFlatteningMap);
                 objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlattenedMutatedFnsFileName, objUtil.lstFlattenedMutatedFns);
-                objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlattenedBuggyFnsFileName, objUtil.lstFlattenedBuggyFns);
+                objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlattenedBuggyFnsFileName, objUtil.lstFlattenedBuggyOrFixedFns);
                 System.out.println("will continue processing within 10 secs...");
                 Thread.sleep(10 * 1000);
             }
@@ -715,12 +742,12 @@ public class controller {
         }
     }
     
-    void TraverseForFlattening(String strProjectWithPatchId, String dirMutants) throws Exception {
+    void TraverseForFlattening(String strProjectWithPatchId, String dirMutants, String strBuggyOrFixed) throws Exception {
         try {
             File folderMutants = new File(dirMutants);
             for (File fileInside : folderMutants.listFiles()) {
                 if (fileInside.isDirectory()) {
-                    TraverseForFlattening(strProjectWithPatchId, fileInside.getPath());
+                    TraverseForFlattening(strProjectWithPatchId, fileInside.getPath(), strBuggyOrFixed);
                 } else if (fileInside.getName().equals(data.strMapFileName)) {
                     String dirMap = fileInside.getPath().replace("\\", "/");
                     LinkedList<String> lstMap = objUtil.ReadFileToList(dirMap);
@@ -730,20 +757,20 @@ public class controller {
                     String dirParent = fileInside.getParent().replace("\\", "/");
                     File folderParent = new File(dirParent);
                     String strParentName = folderParent.getName();
-                    String strBuggyFileName = strParentName.replace(data.strMutants, "") + data.strSupportedLangExt;
-                    String strSemiPathToBuggy = dirParent.replace(dirProject + "/" + strProjectWithPatchId + "/", "").replace("/" + strParentName, "");
-                    String dirBuggyFile = "";
-                    dirBuggyFile = data.dirSimulationForBugs + "/" + strProjectWithPatchId + "/b" + "/" + strSemiPathToBuggy + "/" + strBuggyFileName;
-                    if (!objUtil.FileExists(dirBuggyFile)) {
+                    String strBuggyOrFixedFileName = strParentName.replace(data.strMutants, "") + data.strSupportedLangExt;
+                    String strSemiPathToBuggyOrFixed = dirParent.replace(dirProject + "/" + strProjectWithPatchId + "/", "").replace("/" + strParentName, "");
+                    String dirBuggyOrFixedFile = "";
+                    dirBuggyOrFixedFile = data.dirSimulationForBugsOrFixes + "/" + strProjectWithPatchId + "/" + strBuggyOrFixed + "/" + strSemiPathToBuggyOrFixed + "/" + strBuggyOrFixedFileName;
+                    if (!objUtil.FileExists(dirBuggyOrFixedFile)) {
                         for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
-                            dirBuggyFile = data.dirSimulationForBugs + "/" + strProjectWithPatchId + "/b" + strInitialSemiDirOriginal + strSemiPathToBuggy + "/" + strBuggyFileName;
-                            if (objUtil.FileExists(dirBuggyFile)) {
+                            dirBuggyOrFixedFile = data.dirSimulationForBugsOrFixes + "/" + strProjectWithPatchId + "/" + strBuggyOrFixed + strInitialSemiDirOriginal + strSemiPathToBuggyOrFixed + "/" + strBuggyOrFixedFileName;
+                            if (objUtil.FileExists(dirBuggyOrFixedFile)) {
                                 break;
                             }
-                            dirBuggyFile = "";
+                            dirBuggyOrFixedFile = "";
                         }
                     }
-                    if (dirBuggyFile == null || dirBuggyFile.isEmpty()) {
+                    if (dirBuggyOrFixedFile == null || dirBuggyOrFixedFile.isEmpty()) {
                         continue;
                     }
 
@@ -754,7 +781,7 @@ public class controller {
                         continue;
                     }
                      */
-                    String strFlattenedFile = objUtil.GetFlattenedFile(dirBuggyFile);
+                    String strFlattenedFile = objUtil.GetFlattenedFile(dirBuggyOrFixedFile);
                     if (strFlattenedFile == null || strFlattenedFile.isEmpty()) {
                         continue;
                     }
@@ -767,17 +794,17 @@ public class controller {
                         String strMutantFileName = arrMap[0];
                         String strFnPhrase = arrMap[1];
                         String dirMutant = dirParent + "/" + strMutantFileName;
-                        String strMapStringToBeWritten = strMap + data.strPipe + strSemiPathToBuggy + data.strPipe + strBuggyFileName;
+                        String strMapStringToBeWritten = strMap + data.strPipe + strSemiPathToBuggyOrFixed + data.strPipe + strBuggyOrFixedFileName;
                         String strFlattenedMutatedFile = objUtil.GetFlattenedFile(dirMutant);
-                        String strFlattenedBuggyFile = strFlattenedFile; //mapFlattenedBuggyFns.get(strFnPhrase);
+                        String strFlattenedBuggyOrFixedFile = strFlattenedFile; //mapFlattenedBuggyFns.get(strFnPhrase);
                         if (strMapStringToBeWritten == null || strMapStringToBeWritten.isEmpty()
                                 || strFlattenedMutatedFile == null || strFlattenedMutatedFile.isEmpty()
-                                || strFlattenedBuggyFile == null || strFlattenedBuggyFile.isEmpty()) {
+                                || strFlattenedBuggyOrFixedFile == null || strFlattenedBuggyOrFixedFile.isEmpty()) {
                             continue;
                         }
                         objUtil.lstFlatteningMap.add(strMapStringToBeWritten);
                         objUtil.lstFlattenedMutatedFns.add(strFlattenedMutatedFile);
-                        objUtil.lstFlattenedBuggyFns.add(strFlattenedBuggyFile);
+                        objUtil.lstFlattenedBuggyOrFixedFns.add(strFlattenedBuggyOrFixedFile);
                     }
                 }
             }
@@ -986,6 +1013,61 @@ public class controller {
             }
         } catch (Exception ex) {
             System.out.println("error at controller.TraverseForLocationMapping()");
+            throw ex;
+        }
+    }
+    
+    void FlattenFixes(String dirProject, String projectName, String projectWithPatchId) throws Exception {
+        try {
+            if (!objUtil.FileExists(dirProject)) {
+                System.out.println(dirProject + " does not exist.");
+                return;
+            }
+            if (!objUtil.FileExists(data.dirSimulationForBugsOrFixes)) {
+                System.out.println(data.dirSimulationForBugsOrFixes + " does not exist.");
+                return;
+            }
+            
+            File folderMain = new File(dirProject);
+            for (File folderProject : folderMain.listFiles()) {
+                if (!folderProject.isDirectory()) {
+                    continue;
+                }
+                
+                String strProjectWithPatchId = folderProject.getName();
+                String[] arrPrjWithPatchId = strProjectWithPatchId.split(Pattern.quote("_"));
+                String strProjectName = arrPrjWithPatchId[0];
+                if (projectName != null && projectName.trim().isEmpty() == false) {
+                    if (strProjectName.equals(projectName) == false) {
+                        continue;
+                    }
+                }
+                if (projectWithPatchId != null && projectWithPatchId.trim().isEmpty() == false) {
+                    if (strProjectWithPatchId.equals(projectWithPatchId) == false) {
+                        continue;
+                    }
+                }
+                String dirProjectWithPatchId = folderProject.getPath().replace("\\", "/");
+                System.out.println("flattening " + dirProjectWithPatchId);
+                String dirProjectWithPatchIdSyntactic = data.dirSyntacticFixes + "/" + strProjectWithPatchId;
+                data.dirSrcMLBatchFile = dirProjectWithPatchIdSyntactic;
+                if (objUtil.FileExists(dirProjectWithPatchIdSyntactic + "/" + data.strFlatteningMapFileName)) {
+                    continue;
+                }
+                
+                objUtil.lstFlatteningMap = new LinkedList();
+                objUtil.lstFlattenedMutatedFns = new LinkedList();
+                objUtil.lstFlattenedBuggyOrFixedFns = new LinkedList();
+                TraverseForFlattening(strProjectWithPatchId, dirProjectWithPatchId, data.strFixed);
+                
+                objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlatteningMapFileName, objUtil.lstFlatteningMap);
+                objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlattenedMutatedFnsFileName, objUtil.lstFlattenedMutatedFns);
+                objUtil.WriteListToFile(dirProjectWithPatchIdSyntactic, data.strFlattenedFixedFnsFileName, objUtil.lstFlattenedBuggyOrFixedFns);
+                System.out.println("will continue processing within 10 secs...");
+                Thread.sleep(10 * 1000);
+            }
+        } catch (Exception ex) {
+            System.out.println("error at controller.FlattenFixes()");
             throw ex;
         }
     }

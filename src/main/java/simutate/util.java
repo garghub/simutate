@@ -49,7 +49,7 @@ public class util {
 
     LinkedList<String> lstFlatteningMap;
     LinkedList<String> lstFlattenedMutatedFns;
-    LinkedList<String> lstFlattenedBuggyFns;
+    LinkedList<String> lstFlattenedBuggyOrFixedFns;
     LinkedList<String> lstLocationMap;
 
     util(String dirProjectPath) {
@@ -305,6 +305,10 @@ public class util {
 
     public String ConvertsrcMLToString(String xml) throws Exception {
         try {
+            if (xml == null || xml.isEmpty()){
+                System.out.println("received null or empty xml to convert, returning empty");
+                return "";
+            }
             String tempFilePath = data.dirSrcMLBatchFile;
             String tempXMLFileName = data.tmpXMLFileName;
             LinkedList<String> listXML = new LinkedList();
