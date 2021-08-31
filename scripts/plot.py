@@ -74,6 +74,9 @@ def scatter_plot(data, parax, paray, filename, filenamesuffix):
     if "RQ3" in filenamesuffix:
         label_parax = "\u0394" + label_parax + " |M2 - M1|"
         label_paray = "\u0394" + label_paray + " |M2 - M1|"
+    if "RQ4" in filenamesuffix:
+        label_parax = "Syntactic Distance (1 - " + label_parax + ")"
+        label_paray = "Failing tests (#)"
     axeLeft = sns.jointplot(data=data, x=parax, y=paray, kind="reg")
     axeLeft.set_axis_labels(xlabel=label_parax, ylabel=label_paray, fontsize=12)
     pr_axeLeft, pp_axeLeft = stats.pearsonr(data[parax], data[paray])
@@ -365,37 +368,71 @@ plot_this(df_patch, "RQ2_patch_based___Box_plot")
 #RQ3
 if technique == "nmt":
     print("\nno rq3 processing for nmt, exiting...")
-    exit()
-strLocationBasedOverallDifferencePickleName = "locationbasedoveralldifference.pkl"
-dirLocationBasedOverallDifferencePickle = dirSimilarity + "/" + strLocationBasedOverallDifferencePickleName
-fileLocationBasedOverallDifferencePickle = Path(dirLocationBasedOverallDifferencePickle)
+else:    
+    strLocationBasedOverallDifferencePickleName = "locationbasedoveralldifference.pkl"
+    dirLocationBasedOverallDifferencePickle = dirSimilarity + "/" + strLocationBasedOverallDifferencePickleName
+    fileLocationBasedOverallDifferencePickle = Path(dirLocationBasedOverallDifferencePickle)
 
-df_Locations_Returned = get_locations(dirMain, technique, df)
+    df_Locations_Returned = get_locations(dirMain, technique, df)
 
-if not fileLocationBasedOverallDifferencePickle.is_file():
-    print("\nfile not found ", dirLocationBasedOverallDifferencePickle)
-    df_passed = df
-    df_LocationBasedDifference = get_location_based_difference_df(df_passed, df_Locations_Returned)
-    df_LocationBasedDifference.to_pickle(dirLocationBasedOverallDifferencePickle)
+    if not fileLocationBasedOverallDifferencePickle.is_file():
+        print("\nfile not found ", dirLocationBasedOverallDifferencePickle)
+        df_passed = df
+        df_LocationBasedDifference = get_location_based_difference_df(df_passed, df_Locations_Returned)
+        df_LocationBasedDifference.to_pickle(dirLocationBasedOverallDifferencePickle)
+    else:
+        print("\nreading from ", dirLocationBasedOverallDifferencePickle)
+        df_LocationBasedDifference = pd.read_pickle(dirLocationBasedOverallDifferencePickle)
+
+    plot_this(df_LocationBasedDifference, "RQ3_Random_Lines___Box_plot")
+
+    strPatchLocationBasedOverallDifferencePickleName = "patchlocationbasedoveralldifference.pkl"
+    dirPatchLocationBasedOverallDifferencePickle = dirSimilarity + "/" + strPatchLocationBasedOverallDifferencePickleName
+    filePatchLocationBasedOverallDifferencePickle = Path(dirPatchLocationBasedOverallDifferencePickle)
+
+    if not filePatchLocationBasedOverallDifferencePickle.is_file():
+        print("\nfile not found ", dirPatchLocationBasedOverallDifferencePickle)
+        df_passed = df_patch
+        df_PatchLocationBasedDifference = get_location_based_difference_df(df_passed, df_Locations_Returned)
+        df_PatchLocationBasedDifference.to_pickle(dirPatchLocationBasedOverallDifferencePickle)
+    else:
+        print("\nreading from ", dirPatchLocationBasedOverallDifferencePickle)
+        df_PatchLocationBasedDifference = pd.read_pickle(dirPatchLocationBasedOverallDifferencePickle)
+
+    plot_this(df_PatchLocationBasedDifference, "RQ3_Changed_Lines___Box_plot")
+
+#RQ4
+
+strSimilarityFolderName = "similarityfixes" + "-" + technique
+dirSimilarity = dirMain + "/" + strSimilarityFolderName
+strOverallSimilarityFileName = "overallsimilarity.txt"
+dirSimilarityFile  = dirSimilarity + "/" + strOverallSimilarityFileName
+
+strOverallSimilarityPickleName = "overallsimilarity.pkl"
+dirOverallSimilarityPickle = dirSimilarity + "/" + strOverallSimilarityPickleName
+fileOverallSimilarityPickle = Path(dirOverallSimilarityPickle)
+
+df = pd.DataFrame(columns=['BUG','MUTANT','OCHIAI','BLEU','JACCARD','COSINE'])
+
+if not fileOverallSimilarityPickle.is_file():
+    print("\nfile not found ", dirOverallSimilarityPickle)
+    lstOverallSimilarity = []
+    fileSimilarity = open(dirSimilarityFile,"r")
+    lstOverallSimilarity = fileSimilarity.readlines()
+    
+    for str in lstOverallSimilarity:
+        if "OCHIAI: -1" in str:
+            continue
+        arrStr = str.split(" | ")
+        new_row = {'BUG':arrStr[0], 'MUTANT':arrStr[1], 'OCHIAI':float(arrStr[2].replace("OCHIAI: ", "")), 'BLEU':(1.0 - float(arrStr[3].replace("BLEU: ", ""))), 'JACCARD':(1.0 - float(arrStr[4].replace("JACCARD: ", ""))), 'COSINE':(1.0 - float(arrStr[5].replace("COSINE: ", "")))}
+        df = df.append(new_row, ignore_index=True)
+        print("added ", new_row)
+
+    df = df.loc[df['OCHIAI'] >= 0]
+    
+    df.to_pickle(dirOverallSimilarityPickle)
 else:
-    print("\nreading from ", dirLocationBasedOverallDifferencePickle)
-    df_LocationBasedDifference = pd.read_pickle(dirLocationBasedOverallDifferencePickle)
+    print("\nreading from ", dirOverallSimilarityPickle)
+    df = pd.read_pickle(dirOverallSimilarityPickle)
 
-plot_this(df_LocationBasedDifference, "RQ3_Random_Lines___Box_plot")
-
-strPatchLocationBasedOverallDifferencePickleName = "patchlocationbasedoveralldifference.pkl"
-dirPatchLocationBasedOverallDifferencePickle = dirSimilarity + "/" + strPatchLocationBasedOverallDifferencePickleName
-filePatchLocationBasedOverallDifferencePickle = Path(dirPatchLocationBasedOverallDifferencePickle)
-
-if not filePatchLocationBasedOverallDifferencePickle.is_file():
-    print("\nfile not found ", dirPatchLocationBasedOverallDifferencePickle)
-    df_passed = df_patch
-    df_PatchLocationBasedDifference = get_location_based_difference_df(df_passed, df_Locations_Returned)
-    df_PatchLocationBasedDifference.to_pickle(dirPatchLocationBasedOverallDifferencePickle)
-else:
-    print("\nreading from ", dirPatchLocationBasedOverallDifferencePickle)
-    df_PatchLocationBasedDifference = pd.read_pickle(dirPatchLocationBasedOverallDifferencePickle)
-
-plot_this(df_PatchLocationBasedDifference, "RQ3_Changed_Lines___Box_plot")
-exit()
-          
+plot_this(df, "RQ4_all___Box_plot")
