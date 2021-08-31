@@ -5,12 +5,21 @@ import os
 import sys
 
 n = len(sys.argv)
-if n < 2 :
-    print("\nplease pass as argument - the name of the technique (e.g. nmt / codebert / ...)")
+if n < 3 :
+    print("\nplease pass as argument - 1) processing is done for bugs/fixes (e.g. bugs / fixes); 2) the name of the technique (e.g. nmt / codebert / ...)")
     exit()
 
 dirMain = "/home/agarg/ag/mutation"
-technique = sys.argv[1]
+technique = sys.argv[2]
+
+strSyntacticFolderName = "syntactic" + "-" + technique
+strSemanticFolderName = "semantic" + "-" + technique
+strSimilarityFolderName = "similarity" + "-" + technique
+
+if sys.argv[1] != "bugs":
+    strSyntacticFolderName = "syntactic" + sys.argv[1] + "-" + technique
+    strSemanticFolderName = "semantic" + sys.argv[1] + "-" + technique
+    strSimilarityFolderName = "similarity" + sys.argv[1] + "-" + technique
 
 def ReadFileToList(dirFile):
     print("\nreading ", dirFile)
@@ -20,11 +29,6 @@ def ReadFileToList(dirFile):
             currentPlace = line[:-1]
             lst.append(currentPlace)
     return lst
-
-
-strSyntacticFolderName = "syntactic" + "-" + technique
-strSemanticFolderName = "semantic" + "-" + technique
-strSimilarityFolderName = "similarity" + "-" + technique
 
 dirSyntactic = dirMain + "/" + strSyntacticFolderName
 dirSemantic = dirMain + "/" + strSemanticFolderName

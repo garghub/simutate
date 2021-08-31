@@ -29,17 +29,25 @@ def get_cosine_sim(reference, candidate):
                       index=['reference', 'candidate'])
     return (1 - cosine(df[:1], df[1:2]))
 
+#sys.argv = "/home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py fixes nmt Cli Cli_1".split()
+
 n = len(sys.argv)
-if n < 3 :
-    print("\nplease pass as arguments - 1) the name of the technique (e.g. nmt / codebert / ...) and 2) project name (e.g Cli / Jsoup / ...)")
-    print("\noptionally you can pass as argument - 3) bug id (e.g Cli_1 / Jsoup_3 / ...)")
+if n < 4 :
+    print("\nplease pass as arguments - 1) processing is done for bugs/fixes (e.g. bugs / fixes); 2) the name of the technique (e.g. nmt / codebert / ...); and 3) project name (e.g Cli / Jsoup / ...)")
+    print("\noptionally you can pass as argument - 4) bug id (e.g Cli_1 / Jsoup_3 / ...)")
     exit()
 
-dirMain = "/home/agarg/ag/mutation/syntactic-" + sys.argv[1]
-project = sys.argv[2]
+strSyntacticFolderName = "syntactic"
+if sys.argv[1] != "bugs":
+    strSyntacticFolderName = strSyntacticFolderName + sys.argv[1]
+
+dirMain = "/home/agarg/ag/mutation/" + strSyntacticFolderName + "-" + sys.argv[2]
+# dirMain = "D:/ag/github/mutants_sensitivity/" + strSyntacticFolderName + "-" + sys.argv[2]
+
+project = sys.argv[3]
 bugid = ""
-if n >= 4:
-    bugid = sys.argv[3]
+if n >= 5:
+    bugid = sys.argv[4]
 
 lstOverallSyntacticSimilarity = []
 for strProjectWithPatchId in os.listdir(dirMain):
@@ -49,14 +57,19 @@ for strProjectWithPatchId in os.listdir(dirMain):
         continue
     if bugid != "" and strProjectWithPatchId != bugid:
         continue
-    print("processing syntactic similarity for", strProjectWithPatchId)
     dirProjectWithPatchId = dirMain + "/" + strProjectWithPatchId
+    print("processing syntactic similarity for", dirProjectWithPatchId)
     dirSyntacticSimilarity = dirProjectWithPatchId + "/syntacticsimilarity.txt"
     fileSyntacticSimilarity = Path(dirSyntacticSimilarity)
     if fileSyntacticSimilarity.is_file():
         print(dirSyntacticSimilarity, "already exists.")
         continue
-    dirflattenedbuggyfns = dirProjectWithPatchId + "/flattenedbuggyfns.txt"
+    
+    if sys.argv[1] != "bugs":
+        dirflattenedbuggyfns = dirProjectWithPatchId + "/flattenedfixedfns.txt"
+    else:
+        dirflattenedbuggyfns = dirProjectWithPatchId + "/flattenedbuggyfns.txt"
+    
     fileflattenedbuggyfns = Path(dirflattenedbuggyfns)
     if not fileflattenedbuggyfns.is_file():
         continue
@@ -89,7 +102,7 @@ for strProjectWithPatchId in os.listdir(dirMain):
         tokennizedreference = word_tokenize(reference)
         tokennizedcandidate = word_tokenize(candidate)
 
-        bleuscore = sentence_bleu([tokennizedreference], tokennizedcandidate, weights=(1, 0, 0, 0))
+        bleuscore = sentence_bleu([tokennizedreference], tokennizedcandidate)
 
         jaccardsimilarity = get_jaccard_sim(reference, candidate)
 

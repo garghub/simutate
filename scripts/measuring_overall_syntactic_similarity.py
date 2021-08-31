@@ -15,11 +15,15 @@ def ReadFileToList(dirFile):
     return lst
 
 n = len(sys.argv)
-if n < 2 :
-    print("\nplease pass as argument - the name of the technique (e.g. nmt / codebert / ...)")
+if n < 3 :
+    print("\nplease pass as argument - 1) processing is done for bugs/fixes (e.g. bugs / fixes); 2) the name of the technique (e.g. nmt / codebert / ...)")
     exit()
 
-dirMain = "/home/agarg/ag/mutation/syntactic-" + sys.argv[1]
+strSyntacticFolderName = "syntactic"
+if sys.argv[1] != "bugs":
+    strSyntacticFolderName = strSyntacticFolderName + sys.argv[1]
+
+dirMain = "/home/agarg/ag/mutation/" + strSyntacticFolderName + "-" + sys.argv[2]
 
 lstOverallSyntacticSimilarity = []
 for strProjectWithPatchId in os.listdir(dirMain):
