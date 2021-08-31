@@ -45,6 +45,8 @@ java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar comparefixes codebert
 
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processlocationmapping codebert
 
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar getfailingtests codebert
+
 -----------------------------------------------------------------------------------------------------------------------------
 
 options based on tasks provided by python scripts (here please change /home/agarg/ag/simutate to point to your repository location):
