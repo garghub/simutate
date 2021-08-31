@@ -41,19 +41,21 @@ java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar unabstract
 
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar compare codebert
 
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar comparefixes codebert
+
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processlocationmapping codebert
 
 -----------------------------------------------------------------------------------------------------------------------------
 
 options based on tasks provided by python scripts (here please change /home/agarg/ag/simutate to point to your repository location):
 
-python3 /home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py codebert Cli
+python3 /home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py fixes codebert Cli <-- if bugs are to be processed then replace "fixes" with "bugs"
 
-python3 /home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py codebert Cli Cli_1
+python3 /home/agarg/ag/simutate/scripts/measuring_syntactic_similarity.py fixes codebert Cli Cli_1 <-- if bugs are to be processed then replace "fixes" with "bugs"
 
-python3 /home/agarg/ag/simutate/scripts/measuring_overall_syntactic_similarity.py codebert
+python3 /home/agarg/ag/simutate/scripts/measuring_overall_syntactic_similarity.py fixes codebert <-- if bugs are to be processed then replace "fixes" with "bugs"
 
-python3 /home/agarg/ag/simutate/scripts/combine_semantic_and_syntactic.py codebert
+python3 /home/agarg/ag/simutate/scripts/combine_semantic_and_syntactic.py fixes codebert <-- if bugs are to be processed then replace "fixes" with "bugs"
 
 python3 /home/agarg/ag/simutate/scripts/plot.py codebert
 
@@ -75,7 +77,7 @@ java -jar C:\GitHub\simutate\target\simutate-1.0.jar
 
 please pass below as arguments and try again
 
-1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / processlocationmapping )
+1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / comparefixes / processlocationmapping )
 
 NOTE: for task "simulate", please pass below as additional arguments and try again
 
@@ -85,7 +87,7 @@ Additional 2. project name to perform simulation for (e.g. Cli)
 
 and
 
-Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", and "processlocationmapping", please pass below as additional arguments and try again
+Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", "comparefixes", and "processlocationmapping", please pass below as additional arguments and try again
 
 Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)
 
