@@ -33,6 +33,7 @@ public class data {
     static String strProcessLocationMapping = "processlocationmapping";
     static String strFlattenFixes = "flattenfixes";
     static String strCompareFixes = "comparefixes";
+    static String strGetFailingTests = "getfailingtests";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
@@ -157,6 +158,9 @@ public class data {
     
     static String strFnStartTag = "<function>";
     static String strFnEndTag = "</function>";
+    
+    static String strNone = "None";
+    static String strCsvExt = ".csv";
             
     /*static LinkedList<String> lstProjects = new LinkedList<String>(Arrays.asList(
             "Cli", "Codec", "Collections", "Compress", "Csv",

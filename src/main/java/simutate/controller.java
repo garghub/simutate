@@ -188,6 +188,19 @@ public class controller {
                     objUtil = new util(dirProject);
                     ProcessLocationMapping(dirProject);
                     break;
+                case "getfailingtests":
+                    if (args.length < 2) {
+                        System.out.println("NOTE: for task \"" + data.strGetFailingTests + "\", please pass below as additional arguments and try again");
+                        System.out.println("Additional 1. simulation directory technique suffix (e.g. nmt / codebert / ...)");
+                        break;
+                    }
+                    technique = String.valueOf(args[1]);
+                    data.dirSimulation = data.dirSimulation + "-" + technique;
+                    dirProject = data.dirSimulation;
+                    objUtil = new util(dirProject);
+                    data.dirSrcMLBatchFile = dirProject;
+                    GetFailingTests(dirProject);
+                    break;
                 default:
                     System.out.println("wrong choice of task. available choices : " + data.strAbstract + " / " + data.strUnabstract
                             + " / " + data.strProcessSourcePatches + " / " + data.strSimulate + " / " + data.strFlatten + " / " + data.strGetAllTests);
@@ -1139,6 +1152,86 @@ public class controller {
             objUtil.WriteListToFile(dirOverallSemanticFixes, data.strOverallSemanticSimilarityFileName, lstOverallSemanticSimilarity);
         } catch (Exception ex) {
             System.out.println("error at controller.CompareFixes()");
+            throw ex;
+        }
+    }
+
+    private void GetFailingTests(String dirProject) throws Exception {
+        try {
+            File folderSimulation = new File(dirProject);
+            //LinkedList<String> lstOverallSemanticSimilarity = new LinkedList();
+            for (File folderProjectWithPatchId : folderSimulation.listFiles()) {
+                if (folderProjectWithPatchId.isDirectory() == false) {
+                    continue;
+                }
+                LinkedList<String> lstFailingTests = new LinkedList();
+                lstFailingTests.add("Bug_ID" + "," + "Mutant_Name" + "," + "Mutant_ID" + "," + "Num_Failing_Tests" + "," + "Failing_Tests");
+                String strProjectWithPatchId = folderProjectWithPatchId.getName();
+                String dirProjectWithPatchId = folderProjectWithPatchId.getPath().replace("\\", "/");
+                String strBugSimulationFileName = data.strBuggy + data.strTestPartialFileName;
+                for (File fileMutantSimulation : folderProjectWithPatchId.listFiles()) {
+                    String strFailingTests = data.strNone;
+                    Integer intFailingTests = -1;
+                    Boolean mutantOutputAvailable = true;
+                    String strMutantSimulationFileName = fileMutantSimulation.getName();
+                    String strMutantSimulationFilePath = fileMutantSimulation.getPath();
+                    if (!strMutantSimulationFileName.matches(data.strTxtExtensionCheck)) {
+                        continue;
+                    }
+                    if (strMutantSimulationFileName.equals(strBugSimulationFileName)) {
+                        continue;
+                    }
+                    LinkedList<String> lstMutantSimulation = objUtil.ReadFileToList(strMutantSimulationFilePath);
+                    if (lstMutantSimulation == null || lstMutantSimulation.isEmpty()) {
+                        mutantOutputAvailable = false;
+                    }
+                    if (mutantOutputAvailable) {
+                        String strFailingTestsSentence = lstMutantSimulation.get(0);
+                        if (strFailingTestsSentence.contains(data.strFailingTests + data.strColonSpace)) {
+                            try {
+                                intFailingTests = Integer.parseInt(strFailingTestsSentence.replace(data.strFailingTests + data.strColonSpace, ""));
+                                if (intFailingTests > 0) {
+                                    for (int i = 1; i < lstMutantSimulation.size(); i++) {
+                                        String failingTest = lstMutantSimulation.get(i).replace("-", "").replace("::", ".").trim();
+                                        if (failingTest.isEmpty()) {
+                                            continue;
+                                        }
+                                        if (strFailingTests.equals(data.strNone)) {
+                                            strFailingTests = failingTest;
+                                        } else {
+                                            strFailingTests += "," + failingTest;
+                                        }
+                                    }
+                                }
+                            } catch (NumberFormatException nfex) {
+                            }
+                        }
+                    }
+                    if (strFailingTests.equals(data.strNone) == false) {
+                        strFailingTests = "\"" + strFailingTests + "\"";
+                    }
+                    String strMutantFileName = strMutantSimulationFileName.replace(data.strTestPartialFileName, data.strSupportedLangExt);
+                    String strMutantID = strMutantFileName.replace(data.strSupportedLangExt, "").split(Pattern.quote("_"))[1];
+                    String strToAdd = strProjectWithPatchId + "," + strMutantFileName + "," + strMutantID + "," + intFailingTests + "," + strFailingTests;
+                    lstFailingTests.add(strToAdd);
+                    //lstOverallSemanticSimilarity.add(strToAdd);
+                    System.out.println(strToAdd);
+                }
+                String dirFailingTests = dirProjectWithPatchId.replace(data.strSimulation, data.strFailingTests.replace(" ", "").toLowerCase());
+                String strCsvFileName = strProjectWithPatchId + data.strCsvExt;
+                if (objUtil.FileExists(dirFailingTests + "/" + strCsvFileName)) {
+                    objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirFailingTests + "/" + strCsvFileName, null);
+                }
+                dirFailingTests = dirFailingTests.replace("/" + strProjectWithPatchId, "");
+                objUtil.WriteListToFile(dirFailingTests, strCsvFileName, lstFailingTests);
+            }
+            //String dirOverallSemanticFixes = dirProject.replace(data.strSimulation, data.strSemanticFixes);
+            //if (objUtil.FileExists(dirOverallSemanticFixes + "/" + data.strOverallSemanticSimilarityFileName)) {
+            //    objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirOverallSemanticFixes + "/" + data.strOverallSemanticSimilarityFileName, null);
+            //}
+            //objUtil.WriteListToFile(dirOverallSemanticFixes, data.strOverallSemanticSimilarityFileName, lstOverallSemanticSimilarity);
+        } catch (Exception ex) {
+            System.out.println("error at controller.GetFailingTests()");
             throw ex;
         }
     }

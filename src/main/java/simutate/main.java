@@ -18,22 +18,23 @@ public class main {
         try {
             //debug
             /*
-            args = new String[]{data.strCompareFixes, "nmt"};
-            */
+            args = new String[]{data.strGetFailingTests, "nmt"};
+             */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
                 System.out.println("1. a task to perform (e.g. " + data.strAbstract + " / " + data.strUnabstract + " / " + data.strProcessSourcePatches
                         + " / " + data.strSimulate + " / " + data.strFlatten + " / " + " / " + data.strFlattenFixes + " / " + data.strGetAllTests + " / "
-                        + data.strCompare + " / " + data.strCompareFixes + " / " + data.strProcessLocationMapping + " )");
+                        + data.strCompare + " / " + data.strCompareFixes + " / " + data.strGetFailingTests + " / " + data.strProcessLocationMapping + " )");
                 System.out.println("NOTE: for task \"" + data.strSimulate + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
                 System.out.println("Additional 2. project name to perform simulation for (e.g. Cli)");
                 System.out.println("and");
                 System.out.println("Also for tasks \"" + data.strFlatten + "\", \"" + data.strFlattenFixes + "\", \"" + data.strProcessSourcePatches + "\", \""
-                        + data.strGetAllTests + "\", \"" + data.strCompare + "\", \"" + data.strCompareFixes
+                        + data.strGetAllTests + "\", \"" + data.strCompare + "\", \"" + data.strCompareFixes + "\", \"" + data.strGetFailingTests
                         + "\", and \"" + data.strProcessLocationMapping
                         + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
+                System.out.println("");
                 System.out.println("Optional parameters:");
                 System.out.println("Optional parameters for task \"" + data.strSimulate + "\" -");
                 System.out.println("Optional 1. bug id to perform simulation for (e.g. Cli_1 / Cli_2 / ...)");
