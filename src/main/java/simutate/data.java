@@ -32,6 +32,7 @@ public class data {
     static String strCompare = "compare";
     static String strProcessLocationMapping = "processlocationmapping";
     static String strFlattenFixes = "flattenfixes";
+    static String strCompareFixes = "comparefixes";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
@@ -138,6 +139,7 @@ public class data {
     static String strSimulationListLoad = "load";
     static String strSimulationListSave = "save";
     static String strFailing = "Failing";
+    static String strFailingTests = strFailing + " tests";
     static String strAllTestsFileName = "all_tests";
 
     static String strFlatteningMapFileName = "flatteningmap.txt";
@@ -149,6 +151,7 @@ public class data {
 
     static String strOchiai = "OCHIAI";
     static String strSemantic = "semantic";
+    static String strSemanticFixes = "semanticfixes";
     static String strSemanticSimilarityFileName = "semanticsimilarity.txt";
     static String strOverallSemanticSimilarityFileName = "overallsemanticsimilarity.txt";
     
