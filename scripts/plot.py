@@ -11,6 +11,7 @@ from pathlib import Path
 
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
+import numpy as np
 
 def ReadFileToList(dirFile):
     print("\nreading ", dirFile)
@@ -65,7 +66,7 @@ def hist_dist(df, filename, filenamesuffix):
     filename = filename + "-" + stitle
     plt.savefig(dirSimilarity + "/" + filename + '.pdf')
     plt.savefig(dirSimilarity + "/" + filename + '.png')
-    plt.show()
+    #plt.show()
 
 def scatter_plot(data, parax, paray, filename, filenamesuffix):
     print("\nplotting for ", filename, " and ", filenamesuffix)
@@ -107,8 +108,8 @@ def scatter_plot(data, parax, paray, filename, filenamesuffix):
     filename = filename + "_" + filenamesuffix
     plt.savefig(dirSimilarity + "/" + filename + ".pdf", format='pdf', dpi=1500)
     plt.savefig(dirSimilarity + "/" + filename + ".png", format='png', dpi=1500)
-    plt.show()
-    print()
+    #plt.show()
+    #print()
 
 def plot_this(df_arg, filenamesuffix):
     if len(df_arg) <= 0:
@@ -280,8 +281,8 @@ if n < 2 :
 
 dirMain = "/home/agarg/ag/mutation"
 technique = sys.argv[1]
-# dirMain = "//atlas/users/aayush.garg/c/github/mutation"
-# technique = "ibir"
+# dirMain = "D:/ag/github/mutants_sensitivity"
+# technique = "nmt"
 
 #RQ1
 
@@ -436,3 +437,88 @@ else:
     df = pd.read_pickle(dirOverallSimilarityPickle)
 
 plot_this(df, "RQ4_all___Box_plot")
+
+#RQ2Quartiles
+
+strSimilarityFolderName = "similarity" + "-" + technique
+dirSimilarity = dirMain + "/" + strSimilarityFolderName
+strOverallSimilarityPickleName = "overallsimilarity.pkl"
+dirOverallSimilarityPickle = dirSimilarity + "/" + strOverallSimilarityPickleName
+df = pd.DataFrame(columns=['BUG','MUTANT','OCHIAI','BLEU','JACCARD','COSINE'])
+print("\nreading from ", dirOverallSimilarityPickle)
+df = pd.read_pickle(dirOverallSimilarityPickle)
+
+strOverallSimilarityQ1PickleName = "overallsimilarityq1.pkl"
+dirOverallSimilarityQ1Pickle = dirSimilarity + "/" + strOverallSimilarityQ1PickleName
+fileOverallSimilarityQ1Pickle = Path(dirOverallSimilarityQ1Pickle)
+
+strOverallSimilarityQ2PickleName = "overallsimilarityq2.pkl"
+dirOverallSimilarityQ2Pickle = dirSimilarity + "/" + strOverallSimilarityQ2PickleName
+fileOverallSimilarityQ2Pickle = Path(dirOverallSimilarityQ2Pickle)
+
+strOverallSimilarityQ3PickleName = "overallsimilarityq3.pkl"
+dirOverallSimilarityQ3Pickle = dirSimilarity + "/" + strOverallSimilarityQ3PickleName
+fileOverallSimilarityQ3Pickle = Path(dirOverallSimilarityQ3Pickle)
+
+strOverallSimilarityQ4PickleName = "overallsimilarityq4.pkl"
+dirOverallSimilarityQ4Pickle = dirSimilarity + "/" + strOverallSimilarityQ4PickleName
+fileOverallSimilarityQ4Pickle = Path(dirOverallSimilarityQ4Pickle)
+
+if not (fileOverallSimilarityQ1Pickle.is_file() and fileOverallSimilarityQ2Pickle.is_file()
+        and fileOverallSimilarityQ3Pickle.is_file() and fileOverallSimilarityQ4Pickle.is_file()
+       ):
+    df1 = pd.DataFrame(columns=['BUG','MUTANT','OCHIAI','BLEU','JACCARD','COSINE'])
+    df2 = pd.DataFrame(columns=['BUG','MUTANT','OCHIAI','BLEU','JACCARD','COSINE'])
+    df3 = pd.DataFrame(columns=['BUG','MUTANT','OCHIAI','BLEU','JACCARD','COSINE'])
+    df4 = pd.DataFrame(columns=['BUG','MUTANT','OCHIAI','BLEU','JACCARD','COSINE'])
+    lstUniqueBugs = df["BUG"].unique()
+
+    for strBug in lstUniqueBugs:
+        print("processing for ", strBug)
+        df_bug = df[df["BUG"] == strBug]
+        df_bugSorted = df_bug.sort_values(by="BLEU", ignore_index=True)
+        df1_bug, df2_bug, df3_bug, df4_bug = np.split(df_bugSorted, [int(.25 * len(df_bugSorted)), int(.5 * len(df_bugSorted)), int(.75 * len(df_bugSorted))])
+
+        for index, row in df1_bug.iterrows():
+            df1 = df1.append(row, ignore_index=True)
+
+        for index, row in df2_bug.iterrows():
+            df2 = df2.append(row, ignore_index=True)
+
+        for index, row in df3_bug.iterrows():
+            df3 = df3.append(row, ignore_index=True)
+
+        for index, row in df4_bug.iterrows():
+            df4 = df4.append(row, ignore_index=True)
+    
+    df1.to_pickle(dirOverallSimilarityQ1Pickle)
+    df2.to_pickle(dirOverallSimilarityQ2Pickle)
+    df3.to_pickle(dirOverallSimilarityQ3Pickle)
+    df4.to_pickle(dirOverallSimilarityQ4Pickle)
+else:
+    print("\nreading from ", dirOverallSimilarityPickle)
+    df = pd.read_pickle(dirOverallSimilarityPickle)
+    print("\nreading from ", dirOverallSimilarityQ1Pickle)
+    df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
+    print("\nreading from ", dirOverallSimilarityQ1Pickle)
+    df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
+    print("\nreading from ", dirOverallSimilarityQ1Pickle)
+    df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
+    print("\nreading from ", dirOverallSimilarityQ1Pickle)
+    df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
+        
+#data = [df["OCHIAI"] , df1["OCHIAI"], df2["OCHIAI"], df3["OCHIAI"], df4["OCHIAI"]]
+data = [df[df["OCHIAI"] > 0]["OCHIAI"] , 
+        df1[df1["OCHIAI"] > 0]["OCHIAI"], 
+        df2[df2["OCHIAI"] > 0]["OCHIAI"], 
+        df3[df3["OCHIAI"] > 0]["OCHIAI"], 
+        df4[df4["OCHIAI"] > 0]["OCHIAI"]]
+headers = ["Overall", "Q1", "Q2", "Q3", "Q4"]
+df_dummy = pd.concat(data, axis=1, keys=headers)
+
+plt.figure()
+boxplot = df_dummy.boxplot(column=['Overall', "Q1", "Q2", "Q3", "Q4"])
+boxplot.set_ylabel('OCHIAI')
+filename = "Scatter-Plot-" + technique + "_bleu_ochiai_RQ2_Quartiles___Box_plot"
+plt.savefig(dirSimilarity + "/" + filename + '.pdf')
+plt.savefig(dirSimilarity + "/" + filename + '.png')
