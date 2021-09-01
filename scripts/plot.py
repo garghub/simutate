@@ -500,12 +500,12 @@ else:
     df = pd.read_pickle(dirOverallSimilarityPickle)
     print("\nreading from ", dirOverallSimilarityQ1Pickle)
     df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
-    print("\nreading from ", dirOverallSimilarityQ1Pickle)
-    df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
-    print("\nreading from ", dirOverallSimilarityQ1Pickle)
-    df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
-    print("\nreading from ", dirOverallSimilarityQ1Pickle)
-    df1 = pd.read_pickle(dirOverallSimilarityQ1Pickle)
+    print("\nreading from ", dirOverallSimilarityQ2Pickle)
+    df2 = pd.read_pickle(dirOverallSimilarityQ2Pickle)
+    print("\nreading from ", dirOverallSimilarityQ3Pickle)
+    df3 = pd.read_pickle(dirOverallSimilarityQ3Pickle)
+    print("\nreading from ", dirOverallSimilarityQ4Pickle)
+    df4 = pd.read_pickle(dirOverallSimilarityQ4Pickle)
         
 #data = [df["OCHIAI"] , df1["OCHIAI"], df2["OCHIAI"], df3["OCHIAI"], df4["OCHIAI"]]
 data = [df[df["OCHIAI"] > 0]["OCHIAI"] , 
@@ -522,3 +522,93 @@ boxplot.set_ylabel('OCHIAI')
 filename = "Scatter-Plot-" + technique + "_bleu_ochiai_RQ2_Quartiles___Box_plot"
 plt.savefig(dirSimilarity + "/" + filename + '.pdf')
 plt.savefig(dirSimilarity + "/" + filename + '.png')
+
+#RQ3Quartiles
+df_OchiaiAll = pd.DataFrame(columns=['QUARTILE', 'BUG', 'PERCENTAGEOFOCHIAIGT1'])
+# len(lstUniqueBugs), df, df1, df2, df3, df4
+
+quartileCount = 1
+for dataset in [df, df1, df2, df3, df4]:
+    lstUniqueBugs = dataset["BUG"].unique()
+    quartile = None
+    for strBug in lstUniqueBugs:
+        totalmutants = 0
+        mutantsWithOchiai1 = 0
+        df_bug = dataset[dataset["BUG"] == strBug]
+        
+        for index, row in df_bug.iterrows():
+            totalmutants = totalmutants + 1
+            if row["OCHIAI"] >= 1:
+                mutantsWithOchiai1 = mutantsWithOchiai1 + 1
+
+        percentageOfOchiaiGt1 = (mutantsWithOchiai1 * 100) / totalmutants
+        
+        if quartileCount == 1:
+            quartile = "Overall"
+        elif quartileCount == 2:
+            quartile = "Q1"
+        elif quartileCount == 3:
+            quartile = "Q2"
+        elif quartileCount == 4:
+            quartile = "Q3"
+        elif quartileCount == 5:
+            quartile = "Q4"
+
+        new_row = {'QUARTILE': quartile, 'BUG': strBug
+                   , 'PERCENTAGEOFOCHIAIGT1': percentageOfOchiaiGt1}
+        df_OchiaiAll = df_OchiaiAll.append(new_row, ignore_index=True)
+    quartileCount = quartileCount + 1
+
+# df_OchiaiAll = df_OchiaiAll[df_OchiaiAll["PERCENTAGEOFOCHIAIGT1"] > 0]
+
+data = [df_OchiaiAll[df_OchiaiAll["QUARTILE"] == "Overall"]["PERCENTAGEOFOCHIAIGT1"] , 
+        df_OchiaiAll[df_OchiaiAll["QUARTILE"] == "Q1"]["PERCENTAGEOFOCHIAIGT1"], 
+        df_OchiaiAll[df_OchiaiAll["QUARTILE"] == "Q2"]["PERCENTAGEOFOCHIAIGT1"], 
+        df_OchiaiAll[df_OchiaiAll["QUARTILE"] == "Q3"]["PERCENTAGEOFOCHIAIGT1"], 
+        df_OchiaiAll[df_OchiaiAll["QUARTILE"] == "Q4"]["PERCENTAGEOFOCHIAIGT1"]]
+headers = ["Overall", "Q1", "Q2", "Q3", "Q4"]
+df_dummy = pd.concat(data, axis=1, keys=headers)
+
+plt.figure()
+boxplot = df_dummy.boxplot(column=['Overall', "Q1", "Q2", "Q3", "Q4"])
+boxplot.set_ylabel('Semantically Same Mutants (%)')
+filename = "Scatter-Plot-" + technique + "_bleu_ochiai_RQ3_Quartiles___Box_plot"
+plt.savefig(dirSimilarity + "/" + filename + '.pdf')
+plt.savefig(dirSimilarity + "/" + filename + '.png')
+
+#RQ3QuartilesPart2
+df_BugsOchiai = pd.DataFrame(columns=['QUARTILE', 'PERCENTAGEOFBUGSWITHOCHIAIGT1'])
+quartileCount = 1
+for dataset in [df, df1, df2, df3, df4]:
+    quartile = None
+    totalBugs = 0
+    bugsWithOchiai1 = 0
+    for strBug in lstUniqueBugs:
+        totalBugs = totalBugs + 1
+        
+        df_bug = dataset[dataset["BUG"] == strBug]
+        if(len(df_bug) <= 0):
+            continue
+        
+        for index, row in df_bug.iterrows():
+            if row["OCHIAI"] >= 1:
+                bugsWithOchiai1 = bugsWithOchiai1 + 1
+                break
+                
+    percentageOfBugsWithOchiaiGt1 = (bugsWithOchiai1 * 100) / totalBugs
+        
+    if quartileCount == 1:
+        quartile = "Overall"
+    elif quartileCount == 2:
+        quartile = "Q1"
+    elif quartileCount == 3:
+        quartile = "Q2"
+    elif quartileCount == 4:
+        quartile = "Q3"
+    elif quartileCount == 5:
+        quartile = "Q4"
+
+    new_row = {'QUARTILE': quartile, 'PERCENTAGEOFBUGSWITHOCHIAIGT1': percentageOfBugsWithOchiaiGt1}
+    df_BugsOchiai = df_BugsOchiai.append(new_row, ignore_index=True)
+    quartileCount = quartileCount + 1
+df_BugsOchiai.to_csv(dirSimilarity + "/df_BugsOchiai.csv", index = False)
