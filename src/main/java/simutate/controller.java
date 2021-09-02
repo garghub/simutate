@@ -816,9 +816,15 @@ public class controller {
                             continue;
                         }
                         String[] arrMap = strMap.split(Pattern.quote(data.strPipe));
+                        if (arrMap.length < 2) {
+                            continue;
+                        }
                         String strMutantFileName = arrMap[0];
                         String strFnPhrase = arrMap[1];
                         String dirMutant = dirParent + "/" + strMutantFileName;
+                        if (!objUtil.FileExists(dirMutant)) {
+                            continue;
+                        }
                         String strMapStringToBeWritten = strMap + data.strPipe + strSemiPathToBuggyOrFixed + data.strPipe + strBuggyOrFixedFileName;
                         String strFlattenedMutatedFile = objUtil.GetFlattenedFile(dirMutant);
                         String strFlattenedBuggyOrFixedFile = strFlattenedFile; //mapFlattenedBuggyFns.get(strFnPhrase);
