@@ -8,6 +8,7 @@ import seaborn as sns
 import scipy.stats as stats
 import pickle
 from pathlib import Path
+import statistics
 
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
@@ -87,9 +88,14 @@ def scatter_plot(data, parax, paray, filename, filenamesuffix):
     # # if you choose to write your own legend, then you should adjust the properties then
     phantom_axeLeft, = axeLeft.ax_joint.plot([], [], linestyle="", alpha=0)
     # # here graph is not a ax but a joint grid, so we access the axis through ax_joint method
-    label_axeLeft = 'pearson: r={:f}, p={:f}\nkendall: r={:f}, p={:f}'.format(pr_axeLeft, pp_axeLeft, kr_axeLeft, kp_axeLeft)
+    #label_axeLeft = 'pearson: r={:f}, p={:f}\nkendall: r={:f}, p={:f}'.format(pr_axeLeft, pp_axeLeft, kr_axeLeft, kp_axeLeft)
+    label_axeLeft = 'pearson: r={:.3f}, p={:.3f}\nkendall: r={:.3f}, p={:.3f}'.format(
+        round(pr_axeLeft, 3),
+        round(pp_axeLeft, 3),
+        round(kr_axeLeft, 3),
+        round(kp_axeLeft, 3))
     # # label_pearson = 'r={:f}, p={:f}'.format(pr, pp)
-    axeLeft.ax_joint.legend([phantom_axeLeft], [label_axeLeft])
+    axeLeft.ax_joint.legend([phantom_axeLeft], [label_axeLeft], fontsize="15")
 
     #plt.tight_layout()
 #     if filenamesuffix == "RQ1_all___Box_plot":
@@ -284,7 +290,7 @@ if n < 2 :
 dirMain = "/home/agarg/ag/mutation"
 technique = sys.argv[1]
 # dirMain = "D:/ag/github/mutants_sensitivity"
-# technique = "ibir"
+# technique = "nmt"
 
 #RQ1
 
@@ -536,12 +542,17 @@ strQ4Info = ""
 df_OchiaiAll = pd.DataFrame(columns=['QUARTILE', 'BUG', 'PERCENTAGEOFOCHIAIGT1'])
 # len(lstUniqueBugs), df, df1, df2, df3, df4
 
+dirMutantsOchiaiCsv = dirSimilarity + "/df_MutantsOchiai.csv"
+fileMutantsOchiaiCsv = Path(dirMutantsOchiaiCsv)
+df_MutantsOchiaiCsv = pd.DataFrame()
+
 lstUniqueBugs = df["BUG"].unique()
 quartileCount = 1
 for dataset in [df, df1, df2, df3, df4]:
     quartile = None
     totalMutantsForInfo = 0
     mutantsWithOchiai1ForInfo = 0
+    lstPercentageOfOchiaiGt1 = []
     for strBug in lstUniqueBugs:
         totalmutants = 0
         mutantsWithOchiai1 = 0
@@ -554,6 +565,7 @@ for dataset in [df, df1, df2, df3, df4]:
                 mutantsWithOchiai1 = mutantsWithOchiai1 + 1
 
         percentageOfOchiaiGt1 = (mutantsWithOchiai1 * 100) / totalmutants
+        lstPercentageOfOchiaiGt1.append(percentageOfOchiaiGt1)
 
         if quartileCount == 1:
             quartile = "Overall"
@@ -584,8 +596,15 @@ for dataset in [df, df1, df2, df3, df4]:
         strQ3Info = strInfo
     elif quartileCount == 5:
         strQ4Info = strInfo
-        
+    
+    print(lstPercentageOfOchiaiGt1)
+    new_row = {'QUARTILE': quartile, 'MEANPERCENTAGEOFMUTANTSWITHOCHIAIGT1': statistics.mean(lstPercentageOfOchiaiGt1)
+                  , 'MEDIANPERCENTAGEOFMUTANTSWITHOCHIAIGT1': statistics.median(lstPercentageOfOchiaiGt1)
+              }
+    print(new_row)
+    df_MutantsOchiaiCsv = df_MutantsOchiaiCsv.append(new_row, ignore_index=True)
     quartileCount = quartileCount + 1
+df_MutantsOchiaiCsv.to_csv(dirMutantsOchiaiCsv, index = False)
 
 #dont do it
 #df_OchiaiAll = df_OchiaiAll[df_OchiaiAll["PERCENTAGEOFOCHIAIGT1"] > 0]
@@ -606,101 +625,105 @@ plt.savefig(dirSimilarity + "/" + filename + '.pdf')
 plt.savefig(dirSimilarity + "/" + filename + '.png')
 
 #RQ3QuartilesPart2
-lstUniqueBugs = df["BUG"].unique()
-df_BugsOchiai = pd.DataFrame(columns=['QUARTILE', 'PERCENTAGEOFBUGSWITHOCHIAIGT1'])
-quartileCount = 1
-for dataset in [df, df4, df1, df2, df3, df4]:
-    quartile = None
-    totalBugs = 0
-    bugsWithOchiai1 = 0
-    strbugsWithOchiai1 = ""
-    for strBug in lstUniqueBugs:
-        df_bug = dataset[dataset["BUG"] == strBug]
-        if len(df_bug) == 0:
-            continue
-        totalBugs = totalBugs + 1
-        for index, row in df_bug.iterrows():
-            if quartileCount == 2:
-                if row["OCHIAI"] >= 1 and row["BLEU"] >= 1:
-                    strSyntacticFolderName = "syntactic" + "-" + technique
-                    dirSyntactic = dirMain + "/" + strSyntacticFolderName + "/" + row["BUG"]
-                    dirFlatteningMap = dirSyntactic + "/flatteningmap.txt"
-                    fileFlatteningMap = Path(dirFlatteningMap)
-                    if not fileFlatteningMap.is_file():
-                        print(dirFlatteningMap,  "not found")
-                        continue
-                    fileFlatteningMap = open(dirFlatteningMap,"r")
-                    lstFlatteningMap = fileFlatteningMap.readlines()
-                    i = -1
-                    for i in range(len(lstFlatteningMap)):
-                        strFlatteningMap = lstFlatteningMap[i]
-                        if row["MUTANT"] in strFlatteningMap:
+dirBugOchiaiCsv = dirSimilarity + "/df_BugsOchiai.csv"
+fileBugOchiaiCsv = Path(dirBugOchiaiCsv)
+
+if not (fileBugOchiaiCsv.is_file()):
+    lstUniqueBugs = df["BUG"].unique()
+    df_BugsOchiai = pd.DataFrame(columns=['QUARTILE', 'PERCENTAGEOFBUGSWITHOCHIAIGT1'])
+    quartileCount = 1
+    for dataset in [df, df4, df1, df2, df3, df4]:
+        quartile = None
+        totalBugs = 0
+        bugsWithOchiai1 = 0
+        strbugsWithOchiai1 = ""
+        for strBug in lstUniqueBugs:
+            df_bug = dataset[dataset["BUG"] == strBug]
+            if len(df_bug) == 0:
+                continue
+            totalBugs = totalBugs + 1
+            for index, row in df_bug.iterrows():
+                if quartileCount == 2:
+                    if row["OCHIAI"] >= 1 and row["BLEU"] >= 1:
+                        strSyntacticFolderName = "syntactic" + "-" + technique
+                        dirSyntactic = dirMain + "/" + strSyntacticFolderName + "/" + row["BUG"]
+                        dirFlatteningMap = dirSyntactic + "/flatteningmap.txt"
+                        fileFlatteningMap = Path(dirFlatteningMap)
+                        if not fileFlatteningMap.is_file():
+                            print(dirFlatteningMap,  "not found")
+                            continue
+                        fileFlatteningMap = open(dirFlatteningMap,"r")
+                        lstFlatteningMap = fileFlatteningMap.readlines()
+                        i = -1
+                        for i in range(len(lstFlatteningMap)):
+                            strFlatteningMap = lstFlatteningMap[i]
+                            if row["MUTANT"] in strFlatteningMap:
+                                break
+                            else:
+                                i = -1
+                        if i == -1:
+                            print("Not matched, iterated over entire list")
+                            continue
+
+                        dirFlattenedBuggyFns = dirSyntactic + "/flattenedbuggyfns.txt"
+                        fileFlattenedBuggyFns = Path(dirFlattenedBuggyFns)
+                        if not fileFlattenedBuggyFns.is_file():
+                            print(dirFlattenedBuggyFns,  "not found")
+                            continue
+                        fileFlattenedBuggyFns = open(dirFlattenedBuggyFns,"r")
+                        lstFlattenedBuggyFns = fileFlattenedBuggyFns.readlines()
+                        if len(lstFlattenedBuggyFns) <= i:
+                            print(lstFlattenedBuggyFns,  "is shorter than the index")
+                            continue
+                        strflattenedBuggy = lstFlattenedBuggyFns[i]
+
+                        dirFlattenedMutatedFns = dirSyntactic + "/flattenedmutatedfns.txt"
+                        fileFlattenedMutatedFns = Path(dirFlattenedMutatedFns)
+                        if not fileFlattenedMutatedFns.is_file():
+                            print(dirFlattenedMutatedFns,  "not found")
+                            continue
+                        fileFlattenedMutatedFns = open(dirFlattenedMutatedFns,"r")
+                        lstFlattenedMutatedFns = fileFlattenedMutatedFns.readlines()
+                        if len(lstFlattenedMutatedFns) <= i:
+                            print(lstFlattenedMutatedFns,  "is shorter than the index")
+                            continue
+                        strflattenedMutated = lstFlattenedMutatedFns[i]
+
+                        if strflattenedBuggy == strflattenedMutated:
+                            print(strBug, " has a mutant same as the bug!")
+                            bugsWithOchiai1 = bugsWithOchiai1 + 1
+                            strbugsWithOchiai1 = strbugsWithOchiai1 + strBug + ":" + row["MUTANT"] + ","
                             break
-                        else:
-                            i = -1
-                    if i == -1:
-                        print("Not matched, iterated over entire list")
-                        continue
-                    
-                    dirFlattenedBuggyFns = dirSyntactic + "/flattenedbuggyfns.txt"
-                    fileFlattenedBuggyFns = Path(dirFlattenedBuggyFns)
-                    if not fileFlattenedBuggyFns.is_file():
-                        print(dirFlattenedBuggyFns,  "not found")
-                        continue
-                    fileFlattenedBuggyFns = open(dirFlattenedBuggyFns,"r")
-                    lstFlattenedBuggyFns = fileFlattenedBuggyFns.readlines()
-                    if len(lstFlattenedBuggyFns) <= i:
-                        print(lstFlattenedBuggyFns,  "is shorter than the index")
-                        continue
-                    strflattenedBuggy = lstFlattenedBuggyFns[i]
-                    
-                    dirFlattenedMutatedFns = dirSyntactic + "/flattenedmutatedfns.txt"
-                    fileFlattenedMutatedFns = Path(dirFlattenedMutatedFns)
-                    if not fileFlattenedMutatedFns.is_file():
-                        print(dirFlattenedMutatedFns,  "not found")
-                        continue
-                    fileFlattenedMutatedFns = open(dirFlattenedMutatedFns,"r")
-                    lstFlattenedMutatedFns = fileFlattenedMutatedFns.readlines()
-                    if len(lstFlattenedMutatedFns) <= i:
-                        print(lstFlattenedMutatedFns,  "is shorter than the index")
-                        continue
-                    strflattenedMutated = lstFlattenedMutatedFns[i]
-                    
-                    if strflattenedBuggy == strflattenedMutated:
-                        print(strBug, " has a mutant same as the bug!")
+                else:
+                    if row["OCHIAI"] >= 1:
                         bugsWithOchiai1 = bugsWithOchiai1 + 1
-                        strbugsWithOchiai1 = strbugsWithOchiai1 + strBug + ":" + row["MUTANT"] + ","
                         break
-            else:
-                if row["OCHIAI"] >= 1:
-                    bugsWithOchiai1 = bugsWithOchiai1 + 1
-                    break
-                
-    percentageOfBugsWithOchiaiGt1 = (bugsWithOchiai1 * 100) / totalBugs
-        
-    if quartileCount == 1:
-        quartile = "SemEquiv"
-        strInformation = strOverallInfo
-    if quartileCount == 2:
-        quartile = "SynEquiv"
-        strInformation = strbugsWithOchiai1
-    elif quartileCount == 3:
-        quartile = "Q1"
-        strInformation = strQ1Info
-    elif quartileCount == 4:
-        quartile = "Q2"
-        strInformation = strQ2Info
-    elif quartileCount == 5:
-        quartile = "Q3"
-        strInformation = strQ3Info
-    elif quartileCount == 6:
-        quartile = "Q4"
-        strInformation = strQ4Info
 
-    new_row = {'QUARTILE': quartile, 'PERCENTAGEOFBUGSWITHOCHIAIGT1': percentageOfBugsWithOchiaiGt1
-              , 'NUMBUGSWITHOCHIAI1': bugsWithOchiai1, 'TOTALBUGS': totalBugs
-              , 'INFO': strInformation}
-    df_BugsOchiai = df_BugsOchiai.append(new_row, ignore_index=True)
-    quartileCount = quartileCount + 1
+        percentageOfBugsWithOchiaiGt1 = (bugsWithOchiai1 * 100) / totalBugs
 
-df_BugsOchiai.to_csv(dirSimilarity + "/df_BugsOchiai.csv", index = False)
+        if quartileCount == 1:
+            quartile = "SemEquiv"
+            strInformation = strOverallInfo
+        if quartileCount == 2:
+            quartile = "SynEquiv"
+            strInformation = strbugsWithOchiai1
+        elif quartileCount == 3:
+            quartile = "Q1"
+            strInformation = strQ1Info
+        elif quartileCount == 4:
+            quartile = "Q2"
+            strInformation = strQ2Info
+        elif quartileCount == 5:
+            quartile = "Q3"
+            strInformation = strQ3Info
+        elif quartileCount == 6:
+            quartile = "Q4"
+            strInformation = strQ4Info
+
+        new_row = {'QUARTILE': quartile, 'PERCENTAGEOFBUGSWITHOCHIAIGT1': percentageOfBugsWithOchiaiGt1
+                  , 'NUMBUGSWITHOCHIAI1': bugsWithOchiai1, 'TOTALBUGS': totalBugs
+                  , 'INFO': strInformation}
+        df_BugsOchiai = df_BugsOchiai.append(new_row, ignore_index=True)
+        quartileCount = quartileCount + 1
+
+    df_BugsOchiai.to_csv(dirBugOchiaiCsv, index = False)
