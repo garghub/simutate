@@ -34,6 +34,7 @@ public class data {
     static String strFlattenFixes = "flattenfixes";
     static String strCompareFixes = "comparefixes";
     static String strGetFailingTests = "getfailingtests";
+    static String strProcessSubsumingMutantDiff = "processsubsumingmutantdiff";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
@@ -155,22 +156,29 @@ public class data {
     static String strSemanticFixes = "semanticfixes";
     static String strSemanticSimilarityFileName = "semanticsimilarity.txt";
     static String strOverallSemanticSimilarityFileName = "overallsemanticsimilarity.txt";
-    
+
     static String strFnStartTag = "<function>";
     static String strFnEndTag = "</function>";
-    
+
     static String strNone = "None";
     static String strCsvExt = ".csv";
-            
+
     /*static LinkedList<String> lstProjects = new LinkedList<String>(Arrays.asList(
             "Cli", "Codec", "Collections", "Compress", "Csv",
             "Gson", "JacksonCore", "JacksonDatabind", "JacksonXml", "Jsoup",
             "JxPath", "Lang", "Math", "Mockito", "Time"
     ));*/
     static LinkedList<String> lstInitialSemiDirOriginal = new LinkedList<String>(Arrays.asList(
-            "/src/java/", "/src/main/java/", "/gson/src/main/java/", "/src/"
+            "/gson/src/main/java/", "/src/main/java/", "/src/java/", "/src/"
     ));
     static LinkedList<String> lstAccessModifiers = new LinkedList<String>(Arrays.asList(
             "private", "public", "protected", "final", "{"
     ));
+
+    static String dirMutOperators = dirMain + "/mutation_operators";
+    static String csvSubsumingMutants = "tools_complement_mutants_id.csv";
+    static String _elementSymbolSeparator = ",";
+    static String strMoved = "moved";
+    static String headerOriginal = "original";
+    static String headerMutant = "mutant";
 }

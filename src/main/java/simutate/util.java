@@ -32,6 +32,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import java.util.ArrayList;
+import java.io.FileWriter;
+
 /**
  *
  * @author aayush.garg
@@ -305,7 +308,7 @@ public class util {
 
     public String ConvertsrcMLToString(String xml) throws Exception {
         try {
-            if (xml == null || xml.isEmpty()){
+            if (xml == null || xml.isEmpty()) {
                 System.out.println("received null or empty xml to convert, returning empty");
                 return "";
             }
@@ -2046,6 +2049,193 @@ public class util {
             return retStr;
         } catch (Exception ex) {
             System.out.println("error at util.GetFlattenedFile() while processing file at " + strCodeFilePath);
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    public ArrayList<ArrayList<String>> ReadArrayListFromCSV(String csvPath) throws Exception {
+        try {
+            ArrayList<ArrayList<String>> records = new ArrayList<>();
+            try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] values = line.split(data._elementSymbolSeparator);
+                    records.add(new ArrayList<String>(Arrays.asList(values)));
+                }
+            }
+            return records;
+        } catch (Exception ex) {
+            System.out.println("error at util.ReadArrayListFromCSV()");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+
+    public void WriteArrayListToCSV(String filePath, String fileName, ArrayList<ArrayList<String>> fileContent) throws Exception {
+        try {
+            if (CreateDirectory(filePath)) {
+                FileWriter writer;
+                writer = new FileWriter(filePath + "/" + fileName, false);  //True = Append to file, false = Overwrite
+                if (fileContent.size() <= 0) {
+                    return;
+                }
+                for (int i = 0; i < fileContent.size(); i++) {
+                    for (int j = 0; j < fileContent.get(i).size(); j++) {
+                        writer.write(fileContent.get(i).get(j));
+                        writer.write(data._elementSymbolSeparator);
+                    }
+                    writer.write("\r\n");
+                }
+                writer.close();
+            }
+        } catch (Exception ex) {
+            System.err.println("Error | util.WriteArrayListToCSV()");
+            throw ex;
+        }
+    }
+
+    ArrayList<ArrayList<String>> ProcessMutationOperators(String strTechnique, ArrayList<ArrayList<String>> arrayListSubsumingMutants) {
+        try {
+            if (arrayListSubsumingMutants.size() <= 0) {
+                return null;
+            }
+            ArrayList<ArrayList<String>> records = new ArrayList<>();
+            ArrayList<String> header = arrayListSubsumingMutants.get(0);
+            header.add(data.headerOriginal);
+            header.add(data.headerMutant);
+            records.add(header);
+            for (int i = 1; i < arrayListSubsumingMutants.size(); i++) {
+                System.out.println("processing " + i + "/" + arrayListSubsumingMutants.size());
+                String strTool = arrayListSubsumingMutants.get(i).get(2);
+                if (strTool.equals(strTechnique) == false) {
+                    records.add(arrayListSubsumingMutants.get(i));
+                } else {
+                    ArrayList<String> arrayListWithDiffStrings = GetArrayListWithDiffStrings(strTechnique, arrayListSubsumingMutants.get(i));
+                    records.add(arrayListWithDiffStrings);
+                }
+            }
+            return records;
+        } catch (Exception ex) {
+            System.out.println("error at util.ProcessMutationOperators()");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+
+    private ArrayList<String> GetArrayListWithDiffStrings(String strTechnique, ArrayList<String> arrayListWithoutDiffStrings) {
+        ArrayList<String> arrayListWithDiffStrings = arrayListWithoutDiffStrings;
+        try {
+            String strProject = arrayListWithDiffStrings.get(0);
+            String strBugId = arrayListWithDiffStrings.get(1).replace("f", "");
+            String strMutantId = arrayListWithDiffStrings.get(3);
+            String technique = "";
+            switch (strTechnique) {
+                case "ibir":
+                    technique = strTechnique;
+                    break;
+                case "mubert":
+                    technique = "codebert";
+                    break;
+                case "deepmutation":
+                    technique = "nmt";
+            }
+            LinkedList<String> lstFlatteningMap = ReadFileToList(data.dirSyntactic + "-" + technique + "/" + strProject + "_" + strBugId + "/" + data.strFlatteningMapFileName);
+            String strToSearchinFlatteningMap = strMutantId;
+            if (strToSearchinFlatteningMap.contains(data.strSupportedLangExt) == false) {
+                strToSearchinFlatteningMap = "_" + strToSearchinFlatteningMap + data.strSupportedLangExt;
+            }
+            String strMap = "";
+            for (String map : lstFlatteningMap) {
+                if (map.contains(strToSearchinFlatteningMap + data.strPipe)) {
+                    strMap = map;
+                    break;
+                }
+            }
+            if (strMap.isEmpty() == false) {
+                String[] arrMap = strMap.split(Pattern.quote(data.strPipe));
+                String strMutFileName = arrMap[0];
+                String strFnNameWithSignatures = arrMap[1];
+                String strOrigFileName = arrMap[arrMap.length - 1];
+                String strMutFileLoc = arrMap[arrMap.length - 2];
+                String dirOriginal, dirMutant;
+                if (strTechnique != "deepmutation") {
+
+                    Boolean SemiPathIncluded = false;
+                    String strSemiPath = "";
+                    for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
+                        if (strMutFileLoc.contains(strInitialSemiDirOriginal.substring(1))) {
+                            SemiPathIncluded = true;
+                            strSemiPath = strInitialSemiDirOriginal.substring(1);
+                            break;
+                        }
+                    }
+                    if (SemiPathIncluded) {
+                        dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/" + strOrigFileName;
+                    } else {
+                        dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName;
+                    }
+                    dirMutant = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+                            + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + strMutFileName;
+
+                    String strLineNum = arrMap[arrMap.length - 3];
+                    Integer numFirstLine, numLastLine;
+                    if (strLineNum.contains("]")) {
+                        strLineNum = strLineNum.substring(strLineNum.indexOf("[") + 1, strLineNum.indexOf("]"));
+                        String[] arrLineNum = strLineNum.split(Pattern.quote(", "));
+                        numFirstLine = Integer.parseInt(arrLineNum[0]);
+                        numLastLine = Integer.parseInt(arrLineNum[1]);
+                    } else {
+                        numFirstLine = Integer.parseInt(strLineNum);
+                        numLastLine = numFirstLine;
+                    }
+
+                    ArrayList<String> arrCodeSentences = GetOrigMutCodeSentences(dirOriginal, dirMutant, numFirstLine, numLastLine);
+                    if (arrCodeSentences != null) {
+                        for (String strCodeSentence : arrCodeSentences) {
+                            arrayListWithDiffStrings.add(strCodeSentence);
+                        }
+                    }
+                } else {
+                    //WILL HANDLE THIS LATER
+                }
+            }
+            return arrayListWithDiffStrings;
+        } catch (Exception ex) {
+            System.out.println("util.GetArrayListWithDiffStrings()");
+            ex.printStackTrace();
+            return arrayListWithDiffStrings;
+        }
+    }
+
+    private ArrayList<String> GetOrigMutCodeSentences(String dirOriginal, String dirMutant, Integer numFirstLine, Integer numLastLine) {
+        try {
+            String strOrigCodeSentence = "";
+            String strMutCodeSentence = "";
+            LinkedList<String> lstOrigCode = ReadFileToList(dirOriginal);
+            Integer numLineDiff = numLastLine - numFirstLine;
+            if (numLineDiff > 1) {
+                Integer numCounter = 0;
+                while (numCounter < numLineDiff) {
+                    numCounter += 1;
+                    if (strOrigCodeSentence.isEmpty()) {
+                        strOrigCodeSentence = lstOrigCode.get(numFirstLine - 1 + numCounter).trim();
+                    } else {
+                        strOrigCodeSentence += " " + lstOrigCode.get(numFirstLine - 1 + numCounter).trim();
+                    }
+                }
+                strMutCodeSentence = data.strMoved;
+            } else {
+                strOrigCodeSentence = lstOrigCode.get(numLastLine - 1).trim();
+                LinkedList<String> lstMutCode = ReadFileToList(dirMutant);
+                strMutCodeSentence = lstMutCode.get(numLastLine - 1).trim();
+            }
+            ArrayList<String> lstReturn = new ArrayList();
+            lstReturn.add("\"" + strOrigCodeSentence + "\"");
+            lstReturn.add("\"" + strMutCodeSentence + "\"");
+            return lstReturn;
+        } catch (Exception ex) {
+            System.out.println("error at util.GetOrigMutCodeSentences()");
             ex.printStackTrace();
             return null;
         }

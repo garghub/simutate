@@ -17,21 +17,22 @@ public class main {
     public static void main(String[] args) {
         try {
             //debug
-            /*
-            args = new String[]{data.strGetFailingTests, "nmt"};
-             */
+//            /*
+//            args = new String[]{data.strGetFailingTests, "nmt"};
+            args = new String[]{data.strProcessSubsumingMutantDiff, "codebert"};
+//             */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
                 System.out.println("1. a task to perform (e.g. " + data.strAbstract + " / " + data.strUnabstract + " / " + data.strProcessSourcePatches
                         + " / " + data.strSimulate + " / " + data.strFlatten + " / " + " / " + data.strFlattenFixes + " / " + data.strGetAllTests + " / "
-                        + data.strCompare + " / " + data.strCompareFixes + " / " + data.strGetFailingTests + " / " + data.strProcessLocationMapping + " )");
+                        + data.strCompare + " / " + data.strCompareFixes + " / " + data.strGetFailingTests + " / " + data.strProcessLocationMapping + " / " + data.strProcessSubsumingMutantDiff + " )");
                 System.out.println("NOTE: for task \"" + data.strSimulate + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
                 System.out.println("Additional 2. project name to perform simulation for (e.g. Cli)");
                 System.out.println("and");
                 System.out.println("Also for tasks \"" + data.strFlatten + "\", \"" + data.strFlattenFixes + "\", \"" + data.strProcessSourcePatches + "\", \""
-                        + data.strGetAllTests + "\", \"" + data.strCompare + "\", \"" + data.strCompareFixes + "\", \"" + data.strGetFailingTests
-                        + "\", and \"" + data.strProcessLocationMapping
+                        + data.strGetAllTests + "\", \"" + data.strCompare + "\", \"" + data.strCompareFixes + "\", \"" + data.strGetFailingTests + "\", \"" + data.strProcessLocationMapping
+                        + "\", and \"" + data.strProcessSubsumingMutantDiff
                         + "\", please pass below as additional arguments and try again");
                 System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
                 System.out.println("");

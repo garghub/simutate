@@ -6,6 +6,7 @@
 package simutate;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -200,6 +201,15 @@ public class controller {
                     objUtil = new util(dirProject);
                     data.dirSrcMLBatchFile = dirProject;
                     GetFailingTests(dirProject);
+                    break;
+                case "processsubsumingmutantdiff":
+                    if (args.length < 2) {
+                        System.out.println("NOTE: for task \"" + data.strProcessSubsumingMutantDiff + "\", please pass below as additional arguments and try again");
+                        System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)");
+                        break;
+                    }
+                    technique = String.valueOf(args[1]);
+                    ProcessMutationOperators(technique);
                     break;
                 default:
                     System.out.println("wrong choice of task. available choices : " + data.strAbstract + " / " + data.strUnabstract
@@ -1238,6 +1248,35 @@ public class controller {
             //objUtil.WriteListToFile(dirOverallSemanticFixes, data.strOverallSemanticSimilarityFileName, lstOverallSemanticSimilarity);
         } catch (Exception ex) {
             System.out.println("error at controller.GetFailingTests()");
+            throw ex;
+        }
+    }
+
+    private void ProcessMutationOperators(String strTechnique) throws Exception {
+        try {
+            data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
+            dirProject = data.dirMutSrc;
+            objUtil = new util(dirProject);
+            ArrayList<ArrayList<String>> arrayListSubsumingMutants = objUtil.ReadArrayListFromCSV(data.dirMutOperators + "/" + data.csvSubsumingMutants);
+            String technique = "";
+            switch (strTechnique) {
+                case "ibir":
+                    technique = strTechnique;
+                    break;
+                case "codebert":
+                    technique = "mubert";
+                    break;
+                case "nmt":
+                    technique = "deepmutation";
+            }
+            arrayListSubsumingMutants = objUtil.ProcessMutationOperators(technique, arrayListSubsumingMutants);
+            if (arrayListSubsumingMutants != null) {
+                String csvNewName = data.csvSubsumingMutants.replace(".csv", "_processed.csv");
+                objUtil.WriteArrayListToCSV(data.dirMutOperators, csvNewName, arrayListSubsumingMutants);
+            }
+        } catch (Exception ex) {
+            System.out.println("error at simutate.controller.ProcessMutationOperators()");
+            ex.printStackTrace();
             throw ex;
         }
     }
