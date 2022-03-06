@@ -1665,6 +1665,7 @@ public class util {
         String strToAdd = "";
         try {
             //String strCompileFileName = strMutantFileName.replace(data.strSupportedLangExt, "") + data.strCompilePartialFileName;
+            //cd /home/agarg/ag/mutation/simulation/Cli_1/f && /home/agarg/ag/defects4j/defects4j/framework/bin/defects4j compile
             String strCompilationCommand = data.strInitialCommandForCd + dirFixedPrj + data.strPartialCommandForCompile;
             //String[] arrString = ExecuteProcessGetErrorCodeAndSaveOutput(strCompilationCommand);
             //Integer errorCode = Integer.parseInt(arrString[0]);
@@ -1676,7 +1677,8 @@ public class util {
             }
             //String compilationResults = arrString[1];
             //WriteStringToFile(data.dirSimulation + "/" + strPrjWithPatchId, strCompileFileName, compilationResults);
-
+            
+            //cd /home/agarg/ag/mutation/simulation/Cli_1/f && /home/agarg/ag/defects4j/defects4j/framework/bin/defects4j test
             String strTestCommand = data.strInitialCommandForCd + dirFixedPrj + data.strPartialCommandForTest;
             /*arrString = ExecuteProcessGetErrorCodeAndSaveOutput(strTestCommand);
             errorCode = Integer.parseInt(arrString[0]);

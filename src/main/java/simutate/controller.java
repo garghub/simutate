@@ -705,6 +705,7 @@ public class controller {
                     continue;
                 }
                 //downloading fix
+                ///home/agarg/ag/defects4j/defects4j/framework/bin/defects4j checkout -p Cli -v 1f -w /home/agarg/ag/mutation/simulation/Cli_1/f
                 if (objUtil.FileExists(dirPrjFixed)) {
                     objUtil.ExecuteProcessGetErrorCodeAndSaveOutput(data.strDeleteProcessingDir + " " + dirPrjFixed, null);
                 }
