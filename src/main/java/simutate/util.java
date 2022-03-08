@@ -1677,7 +1677,7 @@ public class util {
             }
             //String compilationResults = arrString[1];
             //WriteStringToFile(data.dirSimulation + "/" + strPrjWithPatchId, strCompileFileName, compilationResults);
-            
+
             //cd /home/agarg/ag/mutation/simulation/Cli_1/f && /home/agarg/ag/defects4j/defects4j/framework/bin/defects4j test
             String strTestCommand = data.strInitialCommandForCd + dirFixedPrj + data.strPartialCommandForTest;
             /*arrString = ExecuteProcessGetErrorCodeAndSaveOutput(strTestCommand);
@@ -2104,8 +2104,12 @@ public class util {
             }
             ArrayList<ArrayList<String>> records = new ArrayList<>();
             ArrayList<String> header = arrayListSubsumingMutants.get(0);
-            header.add(data.headerOriginal);
-            header.add(data.headerMutant);
+            if (header.contains(data.headerOriginal) == false) {
+                header.add(data.headerOriginal);
+            }
+            if (header.contains(data.headerMutant) == false) {
+                header.add(data.headerMutant);
+            }
             records.add(header);
             for (int i = 1; i < arrayListSubsumingMutants.size(); i++) {
                 System.out.println("processing " + i + "/" + arrayListSubsumingMutants.size());
@@ -2154,54 +2158,98 @@ public class util {
                     break;
                 }
             }
-            if (strMap.isEmpty() == false) {
-                String[] arrMap = strMap.split(Pattern.quote(data.strPipe));
-                String strMutFileName = arrMap[0];
-                String strFnNameWithSignatures = arrMap[1];
-                String strOrigFileName = arrMap[arrMap.length - 1];
-                String strMutFileLoc = arrMap[arrMap.length - 2];
-                String dirOriginal, dirMutant;
-                if (strTechnique != "deepmutation") {
-
-                    Boolean SemiPathIncluded = false;
-                    String strSemiPath = "";
-                    for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
-                        if (strMutFileLoc.contains(strInitialSemiDirOriginal.substring(1))) {
-                            SemiPathIncluded = true;
-                            strSemiPath = strInitialSemiDirOriginal.substring(1);
-                            break;
-                        }
+            if (strMap.isEmpty()) {
+                return arrayListWithDiffStrings;
+            }
+            String[] arrMap = strMap.split(Pattern.quote(data.strPipe));
+            String strMutFileName = arrMap[0];
+            String strFnNameWithSignatures = arrMap[1];
+            String strOrigFileName = arrMap[arrMap.length - 1];
+            String strMutFileLoc = arrMap[arrMap.length - 2];
+            String dirOriginal, dirMutant, dirMap, dirOriginalToTraverse;
+            if (strTechnique.equals("deepmutation")) {
+                Boolean SemiPathIncluded = false;
+                String strSemiPath = "";
+                for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
+                    if (strMutFileLoc.contains(strInitialSemiDirOriginal.substring(1))) {
+                        SemiPathIncluded = true;
+                        strSemiPath = strInitialSemiDirOriginal.substring(1);
+                        break;
                     }
-                    if (SemiPathIncluded) {
-                        dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/" + strOrigFileName;
-                    } else {
-                        dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName;
-                    }
-                    dirMutant = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
-                            + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + strMutFileName;
-
-                    String strLineNum = arrMap[arrMap.length - 3];
-                    Integer numFirstLine, numLastLine;
-                    if (strLineNum.contains("]")) {
-                        strLineNum = strLineNum.substring(strLineNum.indexOf("[") + 1, strLineNum.indexOf("]"));
-                        String[] arrLineNum = strLineNum.split(Pattern.quote(", "));
-                        numFirstLine = Integer.parseInt(arrLineNum[0]);
-                        numLastLine = Integer.parseInt(arrLineNum[1]);
-                    } else {
-                        numFirstLine = Integer.parseInt(strLineNum);
-                        numLastLine = numFirstLine;
-                    }
-
-                    ArrayList<String> arrCodeSentences = GetOrigMutCodeSentences(dirOriginal, dirMutant, numFirstLine, numLastLine);
-                    if (arrCodeSentences != null) {
-                        for (String strCodeSentence : arrCodeSentences) {
-                            arrayListWithDiffStrings.add(strCodeSentence);
-                        }
-                    }
+                }
+                //dirMap = "D:\ag\github\mutants_sensitivity\experiment_mutants-nmt\Cli_1\org\apache\commons\cli\CommandLine_mutants\map.txt"
+                if (SemiPathIncluded) {
+                    dirMap = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/"
+                            + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMap + data.strTxtExt;
+                    dirOriginalToTraverse = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/" + strOrigFileName.replace(data.strSupportedLangExt, "");
                 } else {
-                    //WILL HANDLE THIS LATER
+                    dirMap = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+                            + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMap + data.strTxtExt;
+                    dirOriginalToTraverse = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName.replace(data.strSupportedLangExt, "");
+                }
+
+                //dirMutant = "D:\ag\github\mutants_sensitivity\experiment_mutants-nmt\Cli_1\org\apache\commons\cli\CommandLine_mutants\CommandLine_14.java"
+                dirMutant = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+                        + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + strMutFileName;
+
+                LinkedList<String> lstMap = ReadFileToList(dirMap);
+                String strMethodNameWithSignatures = "";
+                for (String map : lstMap) {
+                    if (map.contains(strMutFileName + data.strPipe)) {
+                        strMethodNameWithSignatures = map.split(Pattern.quote(data.strPipe))[1].trim();
+                        break;
+                    }
+                }
+                if (strMethodNameWithSignatures.isEmpty()) {
+                    return arrayListWithDiffStrings;
+                }
+                //space for mutation operators for deepMutation which are not available yet
+                arrayListWithDiffStrings.add(" ");
+                ArrayList<String> arrCodeSentences = GetOrigMutCodeSentences(dirOriginalToTraverse, dirMutant, strMethodNameWithSignatures);
+                if (arrCodeSentences != null) {
+                    for (String strCodeSentence : arrCodeSentences) {
+                        arrayListWithDiffStrings.add(strCodeSentence);
+                    }
+                }
+            } else {
+                Boolean SemiPathIncluded = false;
+                String strSemiPath = "";
+                for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
+                    if (strMutFileLoc.contains(strInitialSemiDirOriginal.substring(1))) {
+                        SemiPathIncluded = true;
+                        strSemiPath = strInitialSemiDirOriginal.substring(1);
+                        break;
+                    }
+                }
+                if (SemiPathIncluded) {
+                    dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/" + strOrigFileName;
+                } else {
+                    dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName;
+                }
+                // In case of IBIR, dirMutant = "D:\ag\github\mutants_sensitivity\experiment_mutants-ibir\Cli_35\src\main\java\org\apache\commons\cli\Options_mutants\Options_361.java"
+                dirMutant = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+                        + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + strMutFileName;
+
+                String strLineNum = arrMap[arrMap.length - 3];
+                Integer numFirstLine, numLastLine;
+                if (strLineNum.contains("]")) {
+                    strLineNum = strLineNum.substring(strLineNum.indexOf("[") + 1, strLineNum.indexOf("]"));
+                    String[] arrLineNum = strLineNum.split(Pattern.quote(", "));
+                    numFirstLine = Integer.parseInt(arrLineNum[0]);
+                    numLastLine = Integer.parseInt(arrLineNum[1]);
+                } else {
+                    numFirstLine = Integer.parseInt(strLineNum);
+                    numLastLine = numFirstLine;
+                }
+
+                ArrayList<String> arrCodeSentences = GetOrigMutCodeSentences(dirOriginal, dirMutant, numFirstLine, numLastLine);
+                if (arrCodeSentences != null) {
+                    for (String strCodeSentence : arrCodeSentences) {
+                        arrayListWithDiffStrings.add(strCodeSentence);
+                    }
                 }
             }
+
             return arrayListWithDiffStrings;
         } catch (Exception ex) {
             System.out.println("util.GetArrayListWithDiffStrings()");
@@ -2231,6 +2279,60 @@ public class util {
                 strOrigCodeSentence = lstOrigCode.get(numLastLine - 1).trim();
                 LinkedList<String> lstMutCode = ReadFileToList(dirMutant);
                 strMutCodeSentence = lstMutCode.get(numLastLine - 1).trim();
+            }
+            ArrayList<String> lstReturn = new ArrayList();
+            lstReturn.add("\"" + strOrigCodeSentence + "\"");
+            lstReturn.add("\"" + strMutCodeSentence + "\"");
+            return lstReturn;
+        } catch (Exception ex) {
+            System.out.println("error at util.GetOrigMutCodeSentences()");
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    private ArrayList<String> GetOrigMutCodeSentences(String dirOriginalToTraverse, String dirMutant, String strMethodNameWithSignatures) {
+        try {
+            String strOrigCodeSentence = "";
+            String strMutCodeSentence = "";
+            for (File fileCode : new File(dirOriginalToTraverse).listFiles()) {
+                if (fileCode.isFile() && fileCode.getName().matches(data.strExtensionCheck)) {
+                    LinkedList<String> lstOrigCode = ReadFileToList(fileCode.getPath());
+                    if (lstOrigCode.get(0).trim().equals(strMethodNameWithSignatures)) {
+                        /*for (String strMethodSentence : lstOrigCode) {
+                            if (strOrigCodeSentence.isEmpty()) {
+                                strOrigCodeSentence = strMethodSentence;
+                            } else {
+                                strOrigCodeSentence += " " + strMethodSentence;
+                            }
+                        }*/
+                        String strFileXML = ExecuteProcess(data.strInitialCommandForsrcml, fileCode.getPath());
+                        if (strFileXML == null) {
+                            return null;
+                        }
+                        strFileXML = strFileXML.replace("><", "> <").replace("[]", "[ ]").replace("()", "( )");
+                        strOrigCodeSentence = ConvertsrcMLToString(strFileXML);
+                        strOrigCodeSentence = strOrigCodeSentence.replaceAll("\\s{2,}", " ").trim();
+                        break;
+                    }
+                }
+            }
+            if (strOrigCodeSentence.isEmpty()) {
+                return null;
+            }
+
+            LinkedList<String> lstMutCode = ReadFileToList(dirMutant);
+            for (String strMutSentence : lstMutCode) {
+                if (strMutSentence.replace(" ", "").contains(strMethodNameWithSignatures.replace(" ", "")) && strMutSentence.contains(data.strEndOfMethod)) {
+                    strMutCodeSentence = strMutSentence;
+                    break;
+                }
+            }
+            if (strMutCodeSentence.isEmpty()) {
+                return null;
+            }
+            if(strOrigCodeSentence.trim().equals(strMutCodeSentence.trim())){
+                return null;
             }
             ArrayList<String> lstReturn = new ArrayList();
             lstReturn.add("\"" + strOrigCodeSentence + "\"");

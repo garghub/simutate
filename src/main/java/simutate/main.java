@@ -19,7 +19,7 @@ public class main {
             //debug
 //            /*
 //            args = new String[]{data.strGetFailingTests, "nmt"};
-            args = new String[]{data.strProcessSubsumingMutantDiff, "codebert"};
+            args = new String[]{data.strProcessSubsumingMutantDiff, "nmt"};
 //             */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");

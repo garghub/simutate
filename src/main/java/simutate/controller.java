@@ -1257,6 +1257,7 @@ public class controller {
         try {
             data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
             dirProject = data.dirMutSrc;
+            data.dirSrcMLBatchFile = dirProject;
             objUtil = new util(dirProject);
             ArrayList<ArrayList<String>> arrayListSubsumingMutants = objUtil.ReadArrayListFromCSV(data.dirMutOperators + "/" + data.csvSubsumingMutants);
             String technique = "";

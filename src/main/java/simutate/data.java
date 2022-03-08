@@ -181,4 +181,5 @@ public class data {
     static String strMoved = "moved";
     static String headerOriginal = "original";
     static String headerMutant = "mutant";
+    static String strEndOfMethod = " }";
 }
