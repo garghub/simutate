@@ -79,7 +79,7 @@ java -jar C:\GitHub\simutate\target\simutate-1.0.jar
 
 please pass below as arguments and try again
 
-1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / comparefixes / getfailingtests / processlocationmapping )
+1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / comparefixes / getfailingtests / processlocationmapping / processsubsumingmutantdiff )
 
 NOTE: for task "simulate", please pass below as additional arguments and try again
 
@@ -89,7 +89,7 @@ Additional 2. project name to perform simulation for (e.g. Cli)
 
 and
 
-Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", "comparefixes", "getfailingtests", and "processlocationmapping", please pass below as additional arguments and try again
+Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", "comparefixes", "getfailingtests", "processlocationmapping", and "processsubsumingmutantdiff", please pass below as additional arguments and try again
 
 Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)
 
