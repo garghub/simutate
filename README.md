@@ -47,6 +47,8 @@ java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processlocationmapping
 
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar getfailingtests codebert
 
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processsubsumingmutantdiff ibir
+
 -----------------------------------------------------------------------------------------------------------------------------
 
 options based on tasks provided by python scripts (here please change /home/agarg/ag/simutate to point to your repository location):
@@ -65,7 +67,7 @@ python3 /home/agarg/ag/simutate/scripts/plot.py codebert
 
 NOTE: please do not forget to modify below variables in data.java file to specify your desired repository locations and dependencies
 
-static String dirMain = isWindows ? "C:/GitHub/mutation" : "/home/agarg/ag/mutation";
+static String dirMain = isWindows ? "D:/ag/github/mutants_sensitivity" : "/home/agarg/ag/mutation";
 
 static String strInitialCommandForDefects4j01 = "/home/agarg/ag/defects4j/defects4j/framework/bin/defects4j";
 
@@ -75,7 +77,7 @@ static String strInitialCommandForsrc2abs02 = " && java -jar C:/GitHub/src2abs/s
 
 below is an example:
 
-java -jar C:\GitHub\simutate\target\simutate-1.0.jar
+java -jar D:\ag\github\simutate\target\simutate-1.0.jar
 
 please pass below as arguments and try again
 
@@ -109,7 +111,5 @@ Optional 2. bug id to perform flattening for (e.g. Cli_1 / Cli_2 / ...)
 -----------------------------------------------------------------------------------------------------------------------------
 
 please feel free to fork it, modify and use it as per your convenience.
-
-NOTE: I know readme is not descriptive, I am working on it... meanwhile feel free to reach out to me for suggestions/questions/concerns.
 
 cheers!
