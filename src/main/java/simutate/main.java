@@ -20,7 +20,7 @@ public class main {
 //            /*
 //            args = new String[]{data.strGetFailingTests, "nmt"};
 //            args = new String[]{data.strProcessSubsumingMutantDiff, "nmt"};
-            args = new String[]{data.strConsolidateChangedLinesDataByMutants, "ibir"};
+//            args = new String[]{data.strConsolidateChangedLinesDataByMutants, "ibir"};
 //             */
             if (args.length < 1) {
                 System.out.println("please pass below as arguments and try again");
