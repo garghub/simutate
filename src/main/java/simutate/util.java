@@ -2331,7 +2331,7 @@ public class util {
             if (strMutCodeSentence.isEmpty()) {
                 return null;
             }
-            if(strOrigCodeSentence.trim().equals(strMutCodeSentence.trim())){
+            if (strOrigCodeSentence.trim().equals(strMutCodeSentence.trim())) {
                 return null;
             }
             ArrayList<String> lstReturn = new ArrayList();
@@ -2342,6 +2342,207 @@ public class util {
             System.out.println("error at util.GetOrigMutCodeSentences()");
             ex.printStackTrace();
             return null;
+        }
+    }
+
+    ArrayList<ArrayList<String>> ConsolidateChangedLinesDataByMutants(String strTechnique, ArrayList<ArrayList<String>> arrayListAllCompilableMutants) {
+        try {
+            if (arrayListAllCompilableMutants.size() <= 0) {
+                return null;
+            }
+            ArrayList<ArrayList<String>> records = new ArrayList<>();
+            ArrayList<String> header = arrayListAllCompilableMutants.get(0);
+            if (header.contains(data.headerChangedLines) == false) {
+                header.add(data.headerChangedLines);
+            }
+            records.add(header);
+            for (int i = 1; i < arrayListAllCompilableMutants.size(); i++) {
+                System.out.println("processing " + i + "/" + arrayListAllCompilableMutants.size());
+                String strTool = arrayListAllCompilableMutants.get(i).get(2);
+                if (strTool.equals(strTechnique) == false) {
+                    records.add(arrayListAllCompilableMutants.get(i));
+                } else {
+                    ArrayList<String> arrayListWithDiffStrings = GetChangedLineNums(strTechnique, arrayListAllCompilableMutants.get(i));
+                    records.add(arrayListWithDiffStrings);
+                }
+            }
+            return records;
+        } catch (Exception ex) {
+            System.out.println("error at util.ConsolidateChangedLinesDataByMutants()");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+
+    private ArrayList<String> GetChangedLineNums(String strTechnique, ArrayList<String> arrayListWithoutChangedLineNums) {
+        ArrayList<String> arrayListWithDiffStrings = arrayListWithoutChangedLineNums;
+        try {
+            String strProject = arrayListWithDiffStrings.get(0);
+            String strBugId = arrayListWithDiffStrings.get(1).replace("f", "");
+            String strMutantFileName = arrayListWithDiffStrings.get(3);
+            String technique = "";
+            switch (strTechnique) {
+                case "ibir":
+                    technique = strTechnique;
+                    break;
+                case "codebert":
+                    technique = strTechnique;
+                    break;
+                case "deepmutation":
+                    technique = "nmt";
+                    break;
+            }
+            //D:\ag\github\mutants_sensitivity\syntactic-codebert\Math_77\flatteningmap.txt
+            LinkedList<String> lstFlatteningMap = ReadFileToList(data.dirSyntactic + "-" + technique + "/" + strProject + "_" + strBugId + "/" + data.strFlatteningMapFileName);
+            String strToSearchinFlatteningMap = strMutantFileName;
+
+            //below is not required as we have mutant file name in the csv
+            //if (strToSearchinFlatteningMap.contains(data.strSupportedLangExt) == false) {
+            //    strToSearchinFlatteningMap = "_" + strToSearchinFlatteningMap + data.strSupportedLangExt;
+            //}
+            String strMap = "";
+            for (String map : lstFlatteningMap) {
+                if (map.contains(strToSearchinFlatteningMap + data.strPipe)) {
+                    strMap = map;
+                    break;
+                }
+            }
+            if (strMap.isEmpty()) {
+                return arrayListWithDiffStrings;
+            }
+            String[] arrMap = strMap.split(Pattern.quote(data.strPipe));
+            String strLineNum;
+            switch (strTechnique) {
+                case "ibir":
+                    strLineNum = arrMap[arrMap.length - 3];
+                    arrayListWithDiffStrings.add("\"[" + strLineNum.trim() + "]\"");
+                    break;
+                case "codebert":
+                    strLineNum = arrMap[arrMap.length - 3];
+                    try {
+                        Integer intLineNum = Integer.parseInt(strLineNum.trim());
+                        arrayListWithDiffStrings.add(strLineNum.trim());
+                    } catch (Exception exc) {
+                        String strMutFileName = arrMap[0];
+                        String strOrigFileName = arrMap[arrMap.length - 1];
+                        String strMutFileLoc = arrMap[arrMap.length - 2];
+                        //D:\ag\github\mutants_sensitivity\experiment_mutants-codebert\Math_77\org\apache\commons\math\linear\OpenMapRealVector_mutants\map.txt
+                        String dirMap = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+                                + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
+                        LinkedList<String> lstMap = ReadFileToList(dirMap);
+                        strMap = "";
+                        for (String map : lstMap) {
+                            if (map.contains(strMutFileName + data.strPipe)) {
+                                strMap = map;
+                                break;
+                            }
+                        }
+                        if (strMap.isEmpty()) {
+                            return arrayListWithDiffStrings;
+                        }
+                        arrMap = strMap.split(Pattern.quote(data.strPipe));
+
+                        strLineNum = arrMap[arrMap.length - 1];
+                        Integer intLineNum = Integer.parseInt(strLineNum.trim());
+                        arrayListWithDiffStrings.add(strLineNum.trim());
+                    }
+                    break;
+                case "deepmutation":
+                    break;
+            }
+
+            //below is not required as we cannot extract the line number for deepmutation mutants
+//            String strMutFileName = arrMap[0];
+//            String strFnNameWithSignatures = arrMap[1];
+//            String strOrigFileName = arrMap[arrMap.length - 1];
+//            String strMutFileLoc = arrMap[arrMap.length - 2];
+//            String dirOriginal, dirMutant, dirMap, dirOriginalToTraverse;
+//            if (strTechnique.equals("deepmutation")) {
+//                Boolean SemiPathIncluded = false;
+//                String strSemiPath = "";
+//                for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
+//                    if (strMutFileLoc.contains(strInitialSemiDirOriginal.substring(1))) {
+//                        SemiPathIncluded = true;
+//                        strSemiPath = strInitialSemiDirOriginal.substring(1);
+//                        break;
+//                    }
+//                }
+            //dirMap = "D:\ag\github\mutants_sensitivity\experiment_mutants-nmt\Cli_1\org\apache\commons\cli\CommandLine_mutants\map.txt"
+//                if (SemiPathIncluded) {
+//                    dirMap = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/"
+//                            + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMap + data.strTxtExt;
+//                    dirOriginalToTraverse = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/" + strOrigFileName.replace(data.strSupportedLangExt, "");
+//                } else {
+//                    dirMap = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+//                            + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMap + data.strTxtExt;
+//                    dirOriginalToTraverse = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName.replace(data.strSupportedLangExt, "");
+//                }
+//
+//                //dirMutant = "D:\ag\github\mutants_sensitivity\experiment_mutants-nmt\Cli_1\org\apache\commons\cli\CommandLine_mutants\CommandLine_14.java"
+//                dirMutant = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+//                        + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + strMutFileName;
+//
+//                LinkedList<String> lstMap = ReadFileToList(dirMap);
+//                String strMethodNameWithSignatures = "";
+//                for (String map : lstMap) {
+//                    if (map.contains(strMutFileName + data.strPipe)) {
+//                        strMethodNameWithSignatures = map.split(Pattern.quote(data.strPipe))[1].trim();
+//                        break;
+//                    }
+//                }
+//                if (strMethodNameWithSignatures.isEmpty()) {
+//                    return arrayListWithDiffStrings;
+//                }
+//                //space for mutation operators for deepMutation which are not available yet
+//                arrayListWithDiffStrings.add(" ");
+//                ArrayList<String> arrCodeSentences = GetOrigMutCodeSentences(dirOriginalToTraverse, dirMutant, strMethodNameWithSignatures);
+//                if (arrCodeSentences != null) {
+//                    for (String strCodeSentence : arrCodeSentences) {
+//                        arrayListWithDiffStrings.add(strCodeSentence);
+//                    }
+//                }
+//            } else {
+//                Boolean SemiPathIncluded = false;
+//                String strSemiPath = "";
+//                for (String strInitialSemiDirOriginal : data.lstInitialSemiDirOriginal) {
+//                    if (strMutFileLoc.contains(strInitialSemiDirOriginal.substring(1))) {
+//                        SemiPathIncluded = true;
+//                        strSemiPath = strInitialSemiDirOriginal.substring(1);
+//                        break;
+//                    }
+//                }
+//                if (SemiPathIncluded) {
+//                    dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc.replace(strSemiPath, "") + "/" + strOrigFileName;
+//                } else {
+//                    dirOriginal = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName;
+//                }
+//                // In case of IBIR, dirMutant = "D:\ag\github\mutants_sensitivity\experiment_mutants-ibir\Cli_35\src\main\java\org\apache\commons\cli\Options_mutants\Options_361.java"
+//                dirMutant = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+//                        + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + strMutFileName;
+//                String strLineNum = arrMap[arrMap.length - 3];
+//                Integer numFirstLine, numLastLine;
+//                if (strLineNum.contains("]")) {
+//                    strLineNum = strLineNum.substring(strLineNum.indexOf("[") + 1, strLineNum.indexOf("]"));
+//                    String[] arrLineNum = strLineNum.split(Pattern.quote(", "));
+//                    numFirstLine = Integer.parseInt(arrLineNum[0]);
+//                    numLastLine = Integer.parseInt(arrLineNum[1]);
+//                } else {
+//                    numFirstLine = Integer.parseInt(strLineNum);
+//                    numLastLine = numFirstLine;
+//                }
+//
+//                ArrayList<String> arrCodeSentences = GetOrigMutCodeSentences(dirOriginal, dirMutant, numFirstLine, numLastLine);
+//                if (arrCodeSentences != null) {
+//                    for (String strCodeSentence : arrCodeSentences) {
+//                        arrayListWithDiffStrings.add(strCodeSentence);
+//                    }
+//                }
+//            }
+            return arrayListWithDiffStrings;
+        } catch (Exception ex) {
+            System.out.println("util.GetArrayListWithDiffStrings()");
+            ex.printStackTrace();
+            return arrayListWithDiffStrings;
         }
     }
 }

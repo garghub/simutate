@@ -35,6 +35,7 @@ public class data {
     static String strCompareFixes = "comparefixes";
     static String strGetFailingTests = "getfailingtests";
     static String strProcessSubsumingMutantDiff = "processsubsumingmutantdiff";
+    static String strConsolidateChangedLinesDataByMutants = "consolidatechangedlinesdatabymutants";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
@@ -182,4 +183,7 @@ public class data {
     static String headerOriginal = "original";
     static String headerMutant = "mutant";
     static String strEndOfMethod = " }";
+    static String dirAll = dirMain + "/similarity-all";
+    static String csvConsolidatedData = "all_compilable_mutants.csv";
+    static String headerChangedLines = "Changed_Lines";
 }

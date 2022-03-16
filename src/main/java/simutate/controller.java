@@ -211,6 +211,15 @@ public class controller {
                     technique = String.valueOf(args[1]);
                     ProcessMutationOperators(technique);
                     break;
+                case "consolidatechangedlinesdatabymutants":
+                    if (args.length < 2) {
+                        System.out.println("NOTE: for task \"" + data.strConsolidateChangedLinesDataByMutants + "\", please pass below as additional arguments and try again");
+                        System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ibir)");
+                        break;
+                    }
+                    technique = String.valueOf(args[1]);
+                    ConsolidateChangedLinesDataByMutants(technique);
+                    break;
                 default:
                     System.out.println("wrong choice of task. available choices : " + data.strAbstract + " / " + data.strUnabstract
                             + " / " + data.strProcessSourcePatches + " / " + data.strSimulate + " / " + data.strFlatten + " / " + data.strGetAllTests);
@@ -1266,7 +1275,7 @@ public class controller {
                     technique = strTechnique;
                     break;
                 case "codebert":
-                    technique = "mubert";
+                    technique = strTechnique;
                     break;
                 case "nmt":
                     technique = "deepmutation";
@@ -1278,6 +1287,36 @@ public class controller {
             }
         } catch (Exception ex) {
             System.out.println("error at simutate.controller.ProcessMutationOperators()");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+    
+    private void ConsolidateChangedLinesDataByMutants(String strTechnique) throws Exception {
+        try {
+            data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
+            dirProject = data.dirMutSrc;
+            data.dirSrcMLBatchFile = dirProject;
+            objUtil = new util(dirProject);
+            ArrayList<ArrayList<String>> arrayListAllCompilableMutants = objUtil.ReadArrayListFromCSV(data.dirAll + "/" + data.csvConsolidatedData);
+            String technique = "";
+            switch (strTechnique) {
+                case "ibir":
+                    technique = strTechnique;
+                    break;
+                case "codebert":
+                    technique = strTechnique;
+                    break;
+                case "nmt":
+                    technique = "deepmutation";
+            }
+            arrayListAllCompilableMutants = objUtil.ConsolidateChangedLinesDataByMutants(technique, arrayListAllCompilableMutants);
+            if (arrayListAllCompilableMutants != null) {
+                String csvNewName = data.csvConsolidatedData.replace(".csv", "_processed.csv");
+                objUtil.WriteArrayListToCSV(data.dirAll, csvNewName, arrayListAllCompilableMutants);
+            }
+        } catch (Exception ex) {
+            System.out.println("error at simutate.controller.ConsolidateChangedLinesDataByMutants()");
             ex.printStackTrace();
             throw ex;
         }
