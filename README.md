@@ -49,6 +49,8 @@ java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar getfailingtests codebe
 
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processsubsumingmutantdiff ibir
 
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar consolidatechangedlinesdatabymutants [codebert/ibir]
+
 -----------------------------------------------------------------------------------------------------------------------------
 
 options based on tasks provided by python scripts (here please change /home/agarg/ag/simutate to point to your repository location):
@@ -81,7 +83,7 @@ java -jar D:\ag\github\simutate\target\simutate-1.0.jar
 
 please pass below as arguments and try again
 
-1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / comparefixes / getfailingtests / processlocationmapping / processsubsumingmutantdiff )
+1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / comparefixes / getfailingtests / processlocationmapping / processsubsumingmutantdiff / consolidatechangedlinesdatabymutants )
 
 NOTE: for task "simulate", please pass below as additional arguments and try again
 
@@ -91,7 +93,7 @@ Additional 2. project name to perform simulation for (e.g. Cli)
 
 and
 
-Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", "comparefixes", "getfailingtests", "processlocationmapping", and "processsubsumingmutantdiff", please pass below as additional arguments and try again
+Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", "comparefixes", "getfailingtests", "processlocationmapping", "processsubsumingmutantdiff", and "consolidatechangedlinesdatabymutants", please pass below as additional arguments and try again
 
 Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)
 
