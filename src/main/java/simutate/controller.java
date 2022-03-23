@@ -220,9 +220,17 @@ public class controller {
                     technique = String.valueOf(args[1]);
                     ConsolidateChangedLinesDataByMutants(technique);
                     break;
+                case "traversingallmutantsforcerebro":
+                    if (args.length < 2) {
+                        System.out.println("NOTE: for task \"" + data.strTraversingAllMutantsForCerebro + "\", please pass below as additional arguments and try again");
+                        System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ibir)");
+                        break;
+                    }
+                    technique = String.valueOf(args[1]);
+                    TraverseAllMutantsForCerebro(technique);
+                    break;
                 default:
-                    System.out.println("wrong choice of task. available choices : " + data.strAbstract + " / " + data.strUnabstract
-                            + " / " + data.strProcessSourcePatches + " / " + data.strSimulate + " / " + data.strFlatten + " / " + data.strGetAllTests);
+                    System.out.println("input doesnot match any choice of task, please try again.");
             }
         } catch (Exception ex) {
             System.out.println("error at simutate.controller.init()");
@@ -1317,6 +1325,39 @@ public class controller {
             }
         } catch (Exception ex) {
             System.out.println("error at simutate.controller.ConsolidateChangedLinesDataByMutants()");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+    
+    private void TraverseAllMutantsForCerebro(String strTechnique) throws Exception {
+        try {
+            data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
+            dirProject = data.dirMutSrc;
+            data.dirSrcMLBatchFile = dirProject;
+            objUtil = new util(dirProject);
+            ArrayList<ArrayList<String>> arrayListAllMutants = objUtil.ReadArrayListFromCSV(data.dirCerebro + "/" + data.csvAllMutantsDataData);
+            String technique = "";
+            switch (strTechnique) {
+                case "ibir":
+                    technique = strTechnique;
+                    break;
+                case "codebert":
+                    technique = strTechnique;
+                    break;
+                case "nmt":
+                    technique = "deepmutation";
+                    break;
+                default:
+                    technique = strTechnique;
+            }
+            arrayListAllMutants = objUtil.TraverseAllMutantsForCerebro(technique, arrayListAllMutants);
+            if (arrayListAllMutants != null) {
+                String csvNewName = data.csvAllMutantsDataData.replace(".csv", "_processed.csv");
+                objUtil.WriteArrayListToCSV(data.dirCerebro, csvNewName, arrayListAllMutants);
+            }
+        } catch (Exception ex) {
+            System.out.println("error at simutate.controller.TraverseAllMutantsForCerebro()");
             ex.printStackTrace();
             throw ex;
         }

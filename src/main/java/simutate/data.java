@@ -36,6 +36,7 @@ public class data {
     static String strGetFailingTests = "getfailingtests";
     static String strProcessSubsumingMutantDiff = "processsubsumingmutantdiff";
     static String strConsolidateChangedLinesDataByMutants = "consolidatechangedlinesdatabymutants";
+    static String strTraversingAllMutantsForCerebro = "traversingallmutantsforcerebro";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";
@@ -48,6 +49,7 @@ public class data {
     //do not need it anymore
     //static String srcMLBatchFilePath = dirSrcMLBatchFile + "/srcML.bat";
     static String tmpXMLFileName = "temp.xml";
+    static String tmpCodeFileName = "temp" + strSupportedLangExt;
     static String strNxtLineSeparator = "\\r\\n";
     static String strAbstractClassCheck = "<specifier>abstract</specifier>";
     static String strAssertStmtXML = "<assert>assert<expr><operator>(</operator><literal type=\"boolean\">true</literal><operator>)</operator></expr>;</assert>";
@@ -186,4 +188,9 @@ public class data {
     static String dirAll = dirMain + "/similarity-all";
     static String csvConsolidatedData = "all_compilable_mutants.csv";
     static String headerChangedLines = "Changed_Lines";
+    static String dirCerebro = dirMain + "/cerebro";
+    static String dirMethods = dirCerebro + "/methods";
+    static String csvAllMutantsDataData = "all_mutants_data.csv";
+    static String headerCerebroPred = "Cerebro_Pred";
+    static String strOperatorForCerebro = "operatorforcerebro";
 }
