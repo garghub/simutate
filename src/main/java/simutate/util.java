@@ -5,6 +5,7 @@
  */
 package simutate;
 
+import com.opencsv.CSVReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -146,7 +147,7 @@ public class util {
             if (listFnXMLs == null || listFnXMLs.isEmpty()) {
                 return;
             }
-            //ProcessFunctions(strCodeFilePath, strCleanedXML, strCleanedCode, packageName, className, listFnXMLs);
+            //ProcessFunctions(strCodeFilePath, strCleanedXML, strCleanedOriginalSentence, packageName, className, listFnXMLs);
             ProcessFunctions(strCodeFilePath, strCleanedXML, strCleanedCode, className, listFnXMLs);
 
             //System.out.println(className + " processing finished, restoring original file");
@@ -2056,13 +2057,30 @@ public class util {
         }
     }
 
-    public ArrayList<ArrayList<String>> ReadArrayListFromCSV(String csvPath) throws Exception {
+    public ArrayList<ArrayList<String>> ReadArrayListFromCSVUsingRegex(String csvPath) throws Exception {
         try {
             ArrayList<ArrayList<String>> records = new ArrayList<>();
             try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     String[] values = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1); //line.split(data._elementSymbolSeparator);
+                    records.add(new ArrayList<String>(Arrays.asList(values)));
+                }
+            }
+            return records;
+        } catch (Exception ex) {
+            System.out.println("error at util.ReadArrayListFromCSV()");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+
+    public ArrayList<ArrayList<String>> ReadArrayListFromCSV(String csvPath) throws Exception {
+        try {
+            ArrayList<ArrayList<String>> records = new ArrayList<>();
+            try (CSVReader csvReader = new CSVReader(new FileReader(csvPath));) {
+                String[] values = null;
+                while ((values = csvReader.readNext()) != null) {
                     records.add(new ArrayList<String>(Arrays.asList(values)));
                 }
             }
@@ -2252,7 +2270,7 @@ public class util {
 
             return arrayListWithDiffStrings;
         } catch (Exception ex) {
-            System.out.println("util.GetArrayListWithDiffStrings()");
+            System.out.println("error at util.GetArrayListWithDiffStrings()");
             ex.printStackTrace();
             return arrayListWithDiffStrings;
         }
@@ -2546,8 +2564,10 @@ public class util {
         }
     }
 
-    ArrayList<ArrayList<String>> TraverseAllMutantsForCerebro(String strTechnique, ArrayList<ArrayList<String>> arrayListAllMutants) {
+    ArrayList<ArrayList<String>> TraverseAllMutantsForCerebro(String strTechnique, ArrayList<ArrayList<String>> arrayListAllMutants) throws Exception {
         try {
+            LinkedList<String> lstJsonContent = new LinkedList();
+            lstJsonContent.add("[");
             if (arrayListAllMutants.size() <= 0) {
                 return null;
             }
@@ -2564,9 +2584,28 @@ public class util {
                     records.add(arrayListAllMutants.get(i));
                 } else {
                     ArrayList<String> arrayListWithDiffStrings = TraverseMutantForCerebro(strTechnique, arrayListAllMutants.get(i));
+                    if (arrayListWithDiffStrings.size() > 16) {
+                        String strGlobalId = arrayListWithDiffStrings.get(4);
+                        String strSubsuming = arrayListWithDiffStrings.get(13);
+                        String strSeq = arrayListWithDiffStrings.get(16);
+                        arrayListWithDiffStrings.remove(16);
+                        arrayListWithDiffStrings.remove(15);
+
+                        if (lstJsonContent.size() == 1) {
+                            lstJsonContent.add("{");
+                        } else {
+                            lstJsonContent.add(", {");
+                        }
+                        lstJsonContent.add("\"tool_name\": \"" + strTool
+                                + "\", \"global_id\": \"" + strGlobalId
+                                + "\", \"subsuming\": " + strSubsuming
+                                + ", \"seq\": \"" + strSeq + "\"");
+                        lstJsonContent.add("}");
+                    }
                     records.add(arrayListWithDiffStrings);
                 }
             }
+            WriteListToFile(data.dirJsonSets, strTechnique + data.jsonFileExtension, lstJsonContent);
             return records;
         } catch (Exception ex) {
             System.out.println("error at util.TraverseAllMutantsForCerebro()");
@@ -2583,53 +2622,69 @@ public class util {
             String strBugId = arrayListWithDiffStrings.get(1).replace("f", "");
             String strToolName = arrayListWithDiffStrings.get(2);
             String strMutantId = arrayListWithDiffStrings.get(3);
+            String strSubsuming = arrayListWithDiffStrings.get(13);
             String strMutantFileName = strMutantId;
             if (strMutantId.contains(data.strSupportedLangExt) == false) {
                 strMutantFileName = arrayListWithDiffStrings.get(6) + "_" + strMutantFileName + data.strSupportedLangExt;
             }
             String strLineMethodFilePath = null;
-            if (strTechnique.equals("codebert")) {
-                strLineMethodFilePath = CreateMethodFile(strTechnique, strProject, strBugId, strMutantFileName, strToolName, strMutantId);
+
+            String strMutantLine = arrayListWithDiffStrings.get(9);
+            if (strMutantLine.isEmpty() || strMutantLine.equals("0")) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to unavailable mutated line number in CSV!");
+                //arrayListWithDiffStrings.add(strSubsuming);
+                arrayListWithDiffStrings.add("0");
+                return arrayListWithDiffStrings;
+            }
+            String[] arrMutantLine = strMutantLine.replace("\"", "").replace("[", "").replace("]", "").replace("'", "").split(Pattern.quote("-"));
+            Integer intMutatedLine = Integer.parseInt(arrMutantLine[arrMutantLine.length - 1]);
+            String strMethodFileNamePath = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0] + "/line_" + intMutatedLine + data.strSupportedLangExt;
+            if (FileExists(strMethodFileNamePath) == false) {
+                //Probably here we need a filter of technique for only mbert, but lets see
+                strLineMethodFilePath = CreateMethodFile(strTechnique, strProject, strBugId, strMutantFileName, strToolName, strMutantId, intMutatedLine);
                 if (strLineMethodFilePath == null) {
-                    arrayListWithDiffStrings.add(arrayListWithDiffStrings.get(13));
+                    arrayListWithDiffStrings.add(strSubsuming);
                     return arrayListWithDiffStrings;
                 }
             } else {
-                String strMutantLine = arrayListWithDiffStrings.get(9);
-                if (strMutantLine.isEmpty() || strMutantLine.equals("0")) {
-                    System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to unavailable mutated line number in CSV!");
-                    arrayListWithDiffStrings.add(arrayListWithDiffStrings.get(13));
-                    return arrayListWithDiffStrings;
-                }
-                String[] arrMutantLine = strMutantLine.replace("\"", "").replace("[", "]").replace("'", "").split(Pattern.quote("-"));
-                Integer intMutatedLine = Integer.parseInt(arrMutantLine[arrMutantLine.length - 1]);
-                String strMethodFileNamePath = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0] + "/line_" + intMutatedLine + data.strSupportedLangExt;
-                if (FileExists(strMethodFileNamePath) == false) {
-                    strLineMethodFilePath = CreateMethodFile(strTechnique, strProject, strBugId, strMutantFileName, strToolName, strMutantId);
-                    if (strLineMethodFilePath == null) {
-                        arrayListWithDiffStrings.add(arrayListWithDiffStrings.get(13));
-                        return arrayListWithDiffStrings;
-                    }
-                }
+                String dirLineMethodFile = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0];
+                String strLineMethodFileName = "line_" + intMutatedLine + data.strSupportedLangExt;
+                strLineMethodFilePath = dirLineMethodFile + "/" + strLineMethodFileName;
             }
-            //WE ARE HERE and we have the methodwithoperator in location: strLineMethodFilePath 
+
+            String strAbsCodeWithGenOperator = GetAbstractedCodeWithGeneralOperator(strLineMethodFilePath);
+            if (strAbsCodeWithGenOperator == null) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to unavailable abstracted code with general operator!");
+                arrayListWithDiffStrings.add(strSubsuming);
+                return arrayListWithDiffStrings;
+            }
+            String strMutantOperator = arrayListWithDiffStrings.get(7);
+            if (strMutantOperator.isEmpty() || strMutantOperator.equals("non")) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to unavailable mutant operator in CSV!");
+                arrayListWithDiffStrings.add("0");
+                return arrayListWithDiffStrings;
+            }
+            String strSeq = strAbsCodeWithGenOperator.replace(data.strOperatorForCerebro, strMutantOperator);
+            arrayListWithDiffStrings.add("-1");
+            arrayListWithDiffStrings.add(strSeq);
             return arrayListWithDiffStrings;
         } catch (Exception ex) {
-            System.out.println("util.GetArrayListWithDiffStrings()");
+            System.out.println("error at util.TraverseMutantForCerebro()");
             ex.printStackTrace();
+            arrayListWithDiffStrings.add("0");
             return arrayListWithDiffStrings;
         }
     }
 
-    String CreateMethodFile(String strTechnique, String strProject, String strBugId, String strMutantFileName, String strToolName, String strMutantId) {
+    String CreateMethodFile(String strTechnique, String strProject, String strBugId, String strMutantFileName, String strToolName, String strMutantId, Integer intMutatedLine) {
         try {
             String technique = "";
             switch (strTechnique) {
                 case "ibir":
                     technique = strTechnique;
                     break;
-                case "codebert":
-                    technique = strTechnique;
+                case "mbert":
+                    technique = "codebert";
                     break;
                 case "deepmutation":
                     technique = "nmt";
@@ -2664,7 +2719,8 @@ public class util {
             LinkedList<String> lstMap = ReadFileToList(dirMap);
             strMap = "";
             for (String map : lstMap) {
-                if (map.contains(strMutFileName.replace(data.strSupportedLangExt, "") + data.strPipe)) {
+                if (map.contains(strMutFileName.replace(data.strSupportedLangExt, "") + data.strPipe)
+                        || map.contains(strMutFileName + data.strPipe)) {
                     strMap = map;
                     break;
                 }
@@ -2676,7 +2732,12 @@ public class util {
             arrMap = strMap.split(Pattern.quote(data.strPipe));
 
             String strLineNum = arrMap[arrMap.length - 1];
-            Integer intLineNum = Integer.parseInt(strLineNum.trim());
+            Integer intLineNum = null;
+            try {
+                intLineNum = Integer.parseInt(strLineNum.trim());
+            } catch (Exception ex) {
+                intLineNum = intMutatedLine;
+            }
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             String dirLineMethodFile = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0];
             String strLineMethodFileName = "line_" + intLineNum + data.strSupportedLangExt;
@@ -2691,12 +2752,59 @@ public class util {
             //D:\ag\github\mutants_sensitivity\experiment\Cli_35\org\apache\commons\cli\Options
             String dirOriginalFunctions = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName.replace(data.strSupportedLangExt, "");
             LinkedList<String> lstOriginalMethodCode = null;
+
+            String dirOriginalFile = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName;
+            LinkedList<String> lstOriginalCode = ReadFileToList(dirOriginalFile);
+            String strOriginalSentenceMutated = lstOriginalCode.get(intLineNum - 1);
+            String tempFilePath = data.dirSrcMLBatchFile;
+            String tempCodeFileName = data.tmpCodeFileName;
+            LinkedList<String> listCode = new LinkedList();
+            listCode.add(strOriginalSentenceMutated);
+            DeleteFile(tempFilePath + "/" + tempCodeFileName);
+            WriteListToFile(tempFilePath, tempCodeFileName, listCode);
+            String strFileXML = ExecuteProcess(data.strInitialCommandForsrcml, tempFilePath + "/" + tempCodeFileName);
+            DeleteFile(tempFilePath + "/" + tempCodeFileName);
+            if (strFileXML == null) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to null recieved from srcml on processing: " + strOriginalSentenceMutated);
+                return null;
+            }
+            //not sure why it is not there from before, commenting this to match
+            //strFileXML = strFileXML.replace("><", "> <").replace("[]", "[ ]").replace("()", "( )");
+            String[] arrCleanedCodeWithXML = GetCleanedCodeWithXML(strFileXML);
+            String strCleanedOriginalSentence = arrCleanedCodeWithXML[1];
+
+            LinkedList<String> lstOriginalMethodCodeWithOperator = new LinkedList();
+            Boolean boolOperatorInjectionSuccessful = false;
             for (File fileMethodCode : new File(dirOriginalFunctions).listFiles()) {
                 if (fileMethodCode.isFile() && fileMethodCode.getName().matches(data.strExtensionCheck)) {
                     LinkedList<String> lstFileCode = ReadFileToList(fileMethodCode.getPath());
-                    if (lstFileCode.get(0).replaceAll(" ", "").trim().equals(strMethodFirstProbableSentence.replaceAll(" ", "").trim())) {
+                    String strFoundCombinedSentence = "";
+                    Integer count = 0;
+                    for (String strFoundSentence : lstFileCode) {
+                        strFoundCombinedSentence += strFoundSentence;
+                        count++;
+                        if (count >= 4) {
+                            break;
+                        }
+                    }
+                    strFoundCombinedSentence = strFoundCombinedSentence.replaceAll(" ", "").trim().replaceAll("\\<.*?\\>", "").replace("final", "");
+                    String strToMatch = strMethodFirstProbableSentence.replaceAll(" ", "").trim().replace("final", "");
+                    System.out.println("matching " + strToMatch + " with found combined string from line 1 and 2: " + strFoundCombinedSentence);
+                    if (strFoundCombinedSentence.contains(strToMatch)) {
                         lstOriginalMethodCode = lstFileCode;
-                        break;
+
+                        for (String strMethodSentence : lstOriginalMethodCode) {
+                            if (strMethodSentence.equals(strCleanedOriginalSentence)) {
+                                //lstOriginalMethodCodeWithOperator.add(strMethodSentence + " " + data.strOperatorForCerebro);
+                                lstOriginalMethodCodeWithOperator.add(data.strMutOperatorPrefix + " " + strMethodSentence + " " + data.strMutOperatorSuffix + " " + data.strOperatorForCerebro);
+                                boolOperatorInjectionSuccessful = true;
+                            } else {
+                                lstOriginalMethodCodeWithOperator.add(strMethodSentence);
+                            }
+                        }
+                        if (boolOperatorInjectionSuccessful) {
+                            break;
+                        }
                     }
                 }
             }
@@ -2705,38 +2813,55 @@ public class util {
                 return null;
             }
 
-            String dirOriginalFile = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName;
-            LinkedList<String> lstOriginalCode = ReadFileToList(dirOriginalFile);
-            String strOriginalSentenceMutated = lstOriginalCode.get(intLineNum - 1);
-
-            String tempFilePath = data.dirSrcMLBatchFile;
-            String tempCodeFileName = data.tmpCodeFileName;
-            LinkedList<String> listCode = new LinkedList();
-            listCode.add(strOriginalSentenceMutated);
-            DeleteFile(tempFilePath + "/" + listCode);
-            WriteListToFile(tempFilePath, tempCodeFileName, listCode);
-            String strFileXML = ExecuteProcess(data.strInitialCommandForsrcml, tempFilePath + "/" + tempCodeFileName);
-            if (strFileXML == null) {
+            if (boolOperatorInjectionSuccessful == false) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to failure in finding location to inject operator.");
                 return null;
-            }
-            strFileXML = strFileXML.replace("><", "> <").replace("[]", "[ ]").replace("()", "( )");
-            String[] arrCleanedCodeWithXML = GetCleanedCodeWithXML(strFileXML);
-            String strCleanedXML = arrCleanedCodeWithXML[0];
-            String strCleanedCode = arrCleanedCodeWithXML[1];
-
-            LinkedList<String> lstOriginalMethodCodeWithOperator = new LinkedList();
-            for (String strMethodSentence : lstOriginalMethodCode) {
-                if (strMethodSentence.equals(strCleanedCode)) {
-                    lstOriginalMethodCodeWithOperator.add(strMethodSentence + " " + data.strOperatorForCerebro);
-                } else {
-                    lstOriginalMethodCodeWithOperator.add(strMethodSentence);
-                }
             }
 
             WriteListToFile(dirLineMethodFile, strLineMethodFileName, lstOriginalMethodCodeWithOperator);
             return dirLineMethodFile + "/" + strLineMethodFileName;
         } catch (Exception ex) {
             System.out.println("error at simutate.util.CreateMethodFile()");
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    String GetAbstractedCodeWithGeneralOperator(String strLineMethodFilePath) {
+        try {
+            File fileLineMethodFilePath = new File(strLineMethodFilePath);
+            //line_1, line_2 etc.
+            String strLineName = fileLineMethodFilePath.getName().replace(data.strSupportedLangExt, "");
+            String dirLineMethodFile = fileLineMethodFilePath.getParent();
+            String dirFn = dirLineMethodFile + "/" + strLineName;
+            String absFnFilePath = dirFn + "/" + strLineName + data.strAbs + data.strSupportedLangExt;
+            if (FileExists(absFnFilePath) == false) {
+                CreateDirectory(dirFn);
+
+                //WriteBlankListToFile(dirFn, data.strIdiomFileName);
+                LinkedList<String> lstIdioms = new LinkedList();
+                lstIdioms.add(data.strOperatorForCerebro);
+                lstIdioms.add(data.strMutOperatorPrefix);
+                lstIdioms.add(data.strMutOperatorSuffix);
+                WriteListToFile(dirFn, data.strIdiomFileName, lstIdioms);
+
+                String idiomFilePath = dirFn + "/" + data.strIdiomFileName;
+                String strsrc2absquery = data.strInitialCommandForsrc2abs01 + dirFn + data.strInitialCommandForsrc2abs02 + strLineMethodFilePath + " " + absFnFilePath + " " + idiomFilePath;
+                ExecuteProcessAndGetIntErrorCode(strsrc2absquery);
+            }
+            LinkedList<String> listAbsFn = ReadFileToList(absFnFilePath);
+            if (listAbsFn == null && listAbsFn.isEmpty()) {
+                return null;
+            }
+            String strAbsFn = ConvertListToString(listAbsFn);
+            /*String[] arrAbsFn = strAbsFn.split(Pattern.quote(" "));
+            if (arrAbsFn.length < 50) {
+                lstAbsFns.add(strAbsFn);
+                lstAbsFnLocs.add(dirFn);
+            }*/
+            return strAbsFn;
+        } catch (Exception ex) {
+            System.out.println("error at util.GetAbstractedCodeWithGeneralOperator()");
             ex.printStackTrace();
             return null;
         }

@@ -1299,7 +1299,7 @@ public class controller {
             throw ex;
         }
     }
-    
+
     private void ConsolidateChangedLinesDataByMutants(String strTechnique) throws Exception {
         try {
             data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
@@ -1329,21 +1329,22 @@ public class controller {
             throw ex;
         }
     }
-    
+
     private void TraverseAllMutantsForCerebro(String strTechnique) throws Exception {
         try {
             data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
             dirProject = data.dirMutSrc;
             data.dirSrcMLBatchFile = dirProject;
             objUtil = new util(dirProject);
-            ArrayList<ArrayList<String>> arrayListAllMutants = objUtil.ReadArrayListFromCSV(data.dirCerebro + "/" + data.csvAllMutantsDataData);
+            String strToolSpecificMutantsDataCSVName = data.strToolSpecificMutantsDataCSVName01 + strTechnique + data.strCsvExt;
+            ArrayList<ArrayList<String>> arrayListAllMutants = objUtil.ReadArrayListFromCSV(data.dirCerebro + "/" + strToolSpecificMutantsDataCSVName);
             String technique = "";
             switch (strTechnique) {
                 case "ibir":
                     technique = strTechnique;
                     break;
                 case "codebert":
-                    technique = strTechnique;
+                    technique = "mbert";
                     break;
                 case "nmt":
                     technique = "deepmutation";
@@ -1353,7 +1354,7 @@ public class controller {
             }
             arrayListAllMutants = objUtil.TraverseAllMutantsForCerebro(technique, arrayListAllMutants);
             if (arrayListAllMutants != null) {
-                String csvNewName = data.csvAllMutantsDataData.replace(".csv", "_processed.csv");
+                String csvNewName = strToolSpecificMutantsDataCSVName.replace(".csv", "_processed.csv");
                 objUtil.WriteArrayListToCSV(data.dirCerebro, csvNewName, arrayListAllMutants);
             }
         } catch (Exception ex) {

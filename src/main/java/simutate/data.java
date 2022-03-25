@@ -87,7 +87,7 @@ public class data {
     static Integer intMinThresholdCountForFnSentences = 5;
     static String strIdiomFileName = "idiom.txt";
     static String strInitialCommandForsrc2abs01 = "cd ";
-    static String strInitialCommandForsrc2abs02 = " && java -jar C:/GitHub/src2abs/src2abs-master/target/src2abs-0.1-jar-with-dependencies.jar single method ";
+    static String strInitialCommandForsrc2abs02 = " && java -jar D:/ag/github/src2abs/src2abs-master/target/src2abs-0.1-jar-with-dependencies.jar single method ";
     static String strLhsFileName = "lhs.txt";
     static String strLhsLocsFileName = "lhslocs.txt";
     static String strGenRhsFileName = "genrhs.txt";
@@ -190,7 +190,11 @@ public class data {
     static String headerChangedLines = "Changed_Lines";
     static String dirCerebro = dirMain + "/cerebro";
     static String dirMethods = dirCerebro + "/methods";
-    static String csvAllMutantsDataData = "all_mutants_data.csv";
+    static String strToolSpecificMutantsDataCSVName01 = "all_mutants_data_";
     static String headerCerebroPred = "Cerebro_Pred";
-    static String strOperatorForCerebro = "operatorforcerebro";
+    static String strOperatorForCerebro = "OPERATOR4CEREBRO";
+    static String dirJsonSets = dirCerebro + "/jsonsets";
+    static String jsonFileExtension = ".json";
+    static String strMutOperatorPrefix = "MST";
+    static String strMutOperatorSuffix = "MSP";
 }
