@@ -2605,6 +2605,7 @@ public class util {
                     records.add(arrayListWithDiffStrings);
                 }
             }
+            lstJsonContent.add("]");
             WriteListToFile(data.dirJsonSets, strTechnique + data.jsonFileExtension, lstJsonContent);
             return records;
         } catch (Exception ex) {
