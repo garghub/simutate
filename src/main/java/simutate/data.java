@@ -36,7 +36,8 @@ public class data {
     static String strGetFailingTests = "getfailingtests";
     static String strProcessSubsumingMutantDiff = "processsubsumingmutantdiff";
     static String strConsolidateChangedLinesDataByMutants = "consolidatechangedlinesdatabymutants";
-    static String strTraversingAllMutantsForCerebro = "traversingallmutantsforcerebro";
+    static String strTraversingMutantsForCerebro = "traversingmutantsforcerebro";
+    static String strTraversingAllMutantsForCerebroNoCSV = "traversingallmutantsforcerebronocsv";
 
     //static String strDirSrcCode = "src/main/java";
     static String strSupportedLangExt = ".java";

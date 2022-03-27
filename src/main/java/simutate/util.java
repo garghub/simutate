@@ -2564,7 +2564,7 @@ public class util {
         }
     }
 
-    ArrayList<ArrayList<String>> TraverseAllMutantsForCerebro(String strTechnique, ArrayList<ArrayList<String>> arrayListAllMutants) throws Exception {
+    ArrayList<ArrayList<String>> TraverseMutantsForCerebro(String strTechnique, ArrayList<ArrayList<String>> arrayListAllMutants) throws Exception {
         try {
             LinkedList<String> lstJsonContent = new LinkedList();
             lstJsonContent.add("[");
@@ -2609,7 +2609,7 @@ public class util {
             WriteListToFile(data.dirJsonSets, strTechnique + data.jsonFileExtension, lstJsonContent);
             return records;
         } catch (Exception ex) {
-            System.out.println("error at util.TraverseAllMutantsForCerebro()");
+            System.out.println("error at util.TraverseMutantsForCerebro()");
             ex.printStackTrace();
             throw ex;
         }
@@ -2865,6 +2865,223 @@ public class util {
             System.out.println("error at util.GetAbstractedCodeWithGeneralOperator()");
             ex.printStackTrace();
             return null;
+        }
+    }
+
+    void TraverseAllMutantsForCerebroNoCSV(String strTechnique) throws Exception {
+        try {
+            File fileMain = new File(dirProject);
+            File[] arrFilePrjWithBugId = fileMain.listFiles();
+            for (int i = arrFilePrjWithBugId.length - 1; i >= 0; i--) {
+                File filePrjWithBugId = arrFilePrjWithBugId[i];
+                String strPrjWithBugId = filePrjWithBugId.getName();
+                System.out.println("processing " + strPrjWithBugId);
+                String[] arrPrjWithBugId = strPrjWithBugId.split(Pattern.quote("_"));
+                if (arrPrjWithBugId.length != 2) {
+                    continue;
+                }
+                String strProject = arrPrjWithBugId[0];
+                String strBugId = arrPrjWithBugId[1];
+                String strToolName = strTechnique;
+
+                TraverseFolderForCerebroNoCSV(strTechnique, strProject, strBugId, strToolName, filePrjWithBugId);
+            }
+        } catch (Exception ex) {
+            System.out.println("error at util.TraverseAllMutantsForCerebroNoCSV()");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+
+    private void TraverseMutantForCerebroNoCSV(String strTechnique, String strProject, String strBugId, String strToolName, String strMutantId) {
+        try {
+            //project,bug,tool_name,mutant_id,global_id,mutant_package,mutant_sourcefile,mutant_operator,mutant_method,mutant_line,mutant_localization_lines,localisationLine,confidence,subsuming,mutant_failing_tests
+            String strMutantFileName = strMutantId;
+            String strLineMethodFilePath = null;
+
+            //Probably here we need a filter of technique for only mbert, but lets see
+            strLineMethodFilePath = CreateMethodFileNoCSV(strTechnique, strProject, strBugId, strMutantFileName, strToolName, strMutantId);
+            if (strLineMethodFilePath == null) {
+                return;
+            }
+
+            String strAbsCodeWithGenOperator = GetAbstractedCodeWithGeneralOperator(strLineMethodFilePath);
+            if (strAbsCodeWithGenOperator == null) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to unavailable abstracted code with general operator!");
+                return;
+            }
+        } catch (Exception ex) {
+            System.out.println("error at util.TraverseMutantForCerebroNoCSV()");
+            ex.printStackTrace();
+        }
+    }
+
+    String CreateMethodFileNoCSV(String strTechnique, String strProject, String strBugId, String strMutantFileName, String strToolName, String strMutantId) {
+        try {
+            String technique = "";
+            switch (strTechnique) {
+                case "ibir":
+                    technique = strTechnique;
+                    break;
+                case "mbert":
+                    technique = "codebert";
+                    break;
+                case "deepmutation":
+                    technique = "nmt";
+                    break;
+                default:
+                    technique = strTechnique;
+            }
+            //D:\ag\github\mutants_sensitivity\syntactic-codebert\Math_77\flatteningmap.txt
+            LinkedList<String> lstFlatteningMap = ReadFileToList(data.dirSyntactic + "-" + technique + "/" + strProject + "_" + strBugId + "/" + data.strFlatteningMapFileName);
+            String strToSearchinFlatteningMap = strMutantFileName;
+
+            String strMap = "";
+            for (String map : lstFlatteningMap) {
+                if (map.contains(strToSearchinFlatteningMap + data.strPipe)) {
+                    strMap = map;
+                    break;
+                }
+            }
+            if (strMap.isEmpty()) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to empty strMap!");
+                return null;
+            }
+            String[] arrMap = strMap.split(Pattern.quote(data.strPipe));
+
+            String strMutFileName = arrMap[0];
+            String strOrigFileName = arrMap[arrMap.length - 1];
+            String strMutFileLoc = arrMap[arrMap.length - 2];
+
+            //D:\ag\github\mutants_sensitivity\experiment_mutants-codebert\Math_77\org\apache\commons\math\linear\OpenMapRealVector_mutants\map.txt
+            String dirMap = data.dirMutSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/"
+                    + strOrigFileName.replace(data.strSupportedLangExt, data.strMutants) + "/" + data.strMapFileName;
+            LinkedList<String> lstMap = ReadFileToList(dirMap);
+            strMap = "";
+            for (String map : lstMap) {
+                if (map.contains(strMutFileName.replace(data.strSupportedLangExt, "") + data.strPipe)
+                        || map.contains(strMutFileName + data.strPipe)) {
+                    strMap = map;
+                    break;
+                }
+            }
+            if (strMap.isEmpty()) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to empty second level strMap!");
+                return null;
+            }
+            arrMap = strMap.split(Pattern.quote(data.strPipe));
+
+            String strLineNum = arrMap[arrMap.length - 1];
+            Integer intLineNum = null;
+            try {
+                intLineNum = Integer.parseInt(strLineNum.trim());
+            } catch (Exception ex) {
+                return null;
+            }
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            String dirLineMethodFile = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0];
+            String strLineMethodFileName = "line_" + intLineNum + data.strSupportedLangExt;
+            if (FileExists(dirLineMethodFile + "/" + strLineMethodFileName)) {
+                return dirLineMethodFile + "/" + strLineMethodFileName;
+            }
+
+            String strMethodFirstProbableSentence = arrMap[arrMap.length - 2];
+            String strOrigMethodFirstProbableSentence = strMethodFirstProbableSentence;
+            strMethodFirstProbableSentence = strMethodFirstProbableSentence.replaceAll("\\<.*?\\>", "");
+
+            //D:\ag\github\mutants_sensitivity\experiment\Cli_35\org\apache\commons\cli\Options
+            String dirOriginalFunctions = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName.replace(data.strSupportedLangExt, "");
+            LinkedList<String> lstOriginalMethodCode = null;
+
+            String dirOriginalFile = data.dirSrc + "/" + strProject + "_" + strBugId + "/" + strMutFileLoc + "/" + strOrigFileName;
+            LinkedList<String> lstOriginalCode = ReadFileToList(dirOriginalFile);
+            String strOriginalSentenceMutated = lstOriginalCode.get(intLineNum - 1);
+            String tempFilePath = data.dirSrcMLBatchFile;
+            String tempCodeFileName = data.tmpCodeFileName;
+            LinkedList<String> listCode = new LinkedList();
+            listCode.add(strOriginalSentenceMutated);
+            DeleteFile(tempFilePath + "/" + tempCodeFileName);
+            WriteListToFile(tempFilePath, tempCodeFileName, listCode);
+            String strFileXML = ExecuteProcess(data.strInitialCommandForsrcml, tempFilePath + "/" + tempCodeFileName);
+            DeleteFile(tempFilePath + "/" + tempCodeFileName);
+            if (strFileXML == null) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to null recieved from srcml on processing: " + strOriginalSentenceMutated);
+                return null;
+            }
+            //not sure why it is not there from before, commenting this to match
+            //strFileXML = strFileXML.replace("><", "> <").replace("[]", "[ ]").replace("()", "( )");
+            String[] arrCleanedCodeWithXML = GetCleanedCodeWithXML(strFileXML);
+            String strCleanedOriginalSentence = arrCleanedCodeWithXML[1];
+
+            LinkedList<String> lstOriginalMethodCodeWithOperator = new LinkedList();
+            Boolean boolOperatorInjectionSuccessful = false;
+            for (File fileMethodCode : new File(dirOriginalFunctions).listFiles()) {
+                if (fileMethodCode.isFile() && fileMethodCode.getName().matches(data.strExtensionCheck)) {
+                    LinkedList<String> lstFileCode = ReadFileToList(fileMethodCode.getPath());
+                    String strFoundCombinedSentence = "";
+                    Integer count = 0;
+                    for (String strFoundSentence : lstFileCode) {
+                        strFoundCombinedSentence += strFoundSentence;
+                        count++;
+                        if (count >= 4) {
+                            break;
+                        }
+                    }
+                    strFoundCombinedSentence = strFoundCombinedSentence.replaceAll(" ", "").trim().replaceAll("\\<.*?\\>", "").replace("final", "");
+                    String strToMatch = strMethodFirstProbableSentence.replaceAll(" ", "").trim().replace("final", "");
+                    //System.out.println("matching " + strToMatch + " with found combined string from line 1 and 2: " + strFoundCombinedSentence);
+                    if (strFoundCombinedSentence.contains(strToMatch)) {
+                        lstOriginalMethodCode = lstFileCode;
+
+                        for (String strMethodSentence : lstOriginalMethodCode) {
+                            if (strMethodSentence.equals(strCleanedOriginalSentence)) {
+                                //lstOriginalMethodCodeWithOperator.add(strMethodSentence + " " + data.strOperatorForCerebro);
+                                lstOriginalMethodCodeWithOperator.add(data.strMutOperatorPrefix + " " + strMethodSentence + " " + data.strMutOperatorSuffix + " " + data.strOperatorForCerebro);
+                                boolOperatorInjectionSuccessful = true;
+                            } else {
+                                lstOriginalMethodCodeWithOperator.add(strMethodSentence);
+                            }
+                        }
+                        if (boolOperatorInjectionSuccessful) {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (lstOriginalMethodCode == null) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to unavailable method file with sentence: " + strOrigMethodFirstProbableSentence + " at " + dirOriginalFunctions);
+                return null;
+            }
+
+            if (boolOperatorInjectionSuccessful == false) {
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to failure in finding location to inject operator.");
+                return null;
+            }
+
+            WriteListToFile(dirLineMethodFile, strLineMethodFileName, lstOriginalMethodCodeWithOperator);
+            return dirLineMethodFile + "/" + strLineMethodFileName;
+        } catch (Exception ex) {
+            System.out.println("error at util.CreateMethodFileNoCSV()");
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    private void TraverseFolderForCerebroNoCSV(String strTechnique, String strProject, String strBugId, String strToolName, File fileFound) {
+        try {
+            if (fileFound.isDirectory()) {
+                for (File fileInside : fileFound.listFiles()) {
+                    TraverseFolderForCerebroNoCSV(strTechnique, strProject, strBugId, strToolName, fileInside);
+                }
+            } else {
+                String strFileFoundName = fileFound.getName();
+                if (strFileFoundName.matches(data.strExtensionCheck)) {
+                    TraverseMutantForCerebroNoCSV(strTechnique, strProject, strBugId, strToolName, strFileFoundName);
+                }
+            }
+        } catch (Exception ex) {
+            System.out.println("error at util.TraverseFolderForCerebroNoCSV()");
+            ex.printStackTrace();
         }
     }
 }

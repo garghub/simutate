@@ -51,7 +51,7 @@ java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar processsubsumingmutant
 
 java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar consolidatechangedlinesdatabymutants [codebert/ibir]
 
-java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar traversingallmutantsforcerebro codebert
+java -jar /home/agarg/ag/simutate/target/simutate-1.0.jar traversingmutantsforcerebro codebert
 
 -----------------------------------------------------------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ java -jar D:\ag\github\simutate\target\simutate-1.0.jar
 
 please pass below as arguments and try again
 
-1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / comparefixes / getfailingtests / processlocationmapping / processsubsumingmutantdiff / consolidatechangedlinesdatabymutants / traversingallmutantsforcerebro )
+1. a task to perform (e.g. abstract / unabstract / processsourcepatches / simulate / flatten /  / flattenfixes / getalltests / compare / comparefixes / getfailingtests / processlocationmapping / processsubsumingmutantdiff / consolidatechangedlinesdatabymutants / traversingmutantsforcerebro )
 
 NOTE: for task "simulate", please pass below as additional arguments and try again
 
@@ -95,7 +95,7 @@ Additional 2. project name to perform simulation for (e.g. Cli)
 
 and
 
-Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", "comparefixes", "getfailingtests", "processlocationmapping", "processsubsumingmutantdiff", "consolidatechangedlinesdatabymutants", and "traversingallmutantsforcerebro," please pass below as additional arguments and try again
+Also for tasks "flatten", "flattenfixes", "processsourcepatches", "getalltests", "compare", "comparefixes", "getfailingtests", "processlocationmapping", "processsubsumingmutantdiff", "consolidatechangedlinesdatabymutants", and "traversingmutantsforcerebro," please pass below as additional arguments and try again
 
 Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ...)
 
