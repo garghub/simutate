@@ -2564,7 +2564,7 @@ public class util {
         }
     }
 
-    ArrayList<ArrayList<String>> TraverseMutantsForCerebro(String strTechnique, ArrayList<ArrayList<String>> arrayListAllMutants) throws Exception {
+    ArrayList<ArrayList<String>> TraverseMutantsForCerebro(String strTechnique, ArrayList<ArrayList<String>> arrayListAllMutants, Integer intSeqLen) throws Exception {
         try {
             LinkedList<String> lstJsonContent = new LinkedList();
             lstJsonContent.add("[");
@@ -2583,7 +2583,7 @@ public class util {
                 if (strTool.equals(strTechnique) == false) {
                     records.add(arrayListAllMutants.get(i));
                 } else {
-                    ArrayList<String> arrayListWithDiffStrings = TraverseMutantForCerebro(strTechnique, arrayListAllMutants.get(i));
+                    ArrayList<String> arrayListWithDiffStrings = TraverseMutantForCerebro(strTechnique, arrayListAllMutants.get(i), intSeqLen);
                     if (arrayListWithDiffStrings.size() > 16) {
                         String strGlobalId = arrayListWithDiffStrings.get(4);
                         String strSubsuming = arrayListWithDiffStrings.get(13);
@@ -2615,7 +2615,7 @@ public class util {
         }
     }
 
-    private ArrayList<String> TraverseMutantForCerebro(String strTechnique, ArrayList<String> arrayListWithoutChangedLineNums) {
+    private ArrayList<String> TraverseMutantForCerebro(String strTechnique, ArrayList<String> arrayListWithoutChangedLineNums, Integer intSeqLen) {
         ArrayList<String> arrayListWithDiffStrings = arrayListWithoutChangedLineNums;
         try {
             //project,bug,tool_name,mutant_id,global_id,mutant_package,mutant_sourcefile,mutant_operator,mutant_method,mutant_line,mutant_localization_lines,localisationLine,confidence,subsuming,mutant_failing_tests
@@ -2641,17 +2641,22 @@ public class util {
             Integer intMutatedLine = Integer.parseInt(arrMutantLine[arrMutantLine.length - 1]);
             String strMethodFileNamePath = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0] + "/line_" + intMutatedLine + data.strSupportedLangExt;
             if (FileExists(strMethodFileNamePath) == false) {
-                //Probably here we need a filter of technique for only mbert, but lets see
+                //We need this filter of technique for only mbert
+                /*
                 strLineMethodFilePath = CreateMethodFile(strTechnique, strProject, strBugId, strMutantFileName, strToolName, strMutantId, intMutatedLine);
                 if (strLineMethodFilePath == null) {
                     arrayListWithDiffStrings.add(strSubsuming);
                     return arrayListWithDiffStrings;
                 }
-            } else {
-                String dirLineMethodFile = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0];
-                String strLineMethodFileName = "line_" + intMutatedLine + data.strSupportedLangExt;
-                strLineMethodFilePath = dirLineMethodFile + "/" + strLineMethodFileName;
-            }
+                 */
+                System.out.println("Could not process " + strProject + "," + strBugId + "f," + strToolName + "," + strMutantId + " due to unavailable existing line-sequence mapping!");
+                arrayListWithDiffStrings.add(strSubsuming);
+                return arrayListWithDiffStrings;
+            } //else {
+            String dirLineMethodFile = data.dirMethods + "/" + strProject + "_" + strBugId + "/" + strMutantFileName.split(Pattern.quote("_"))[0];
+            String strLineMethodFileName = "line_" + intMutatedLine + data.strSupportedLangExt;
+            strLineMethodFilePath = dirLineMethodFile + "/" + strLineMethodFileName;
+            //}
 
             String strAbsCodeWithGenOperator = GetAbstractedCodeWithGeneralOperator(strLineMethodFilePath);
             if (strAbsCodeWithGenOperator == null) {
@@ -2665,7 +2670,15 @@ public class util {
                 arrayListWithDiffStrings.add("0");
                 return arrayListWithDiffStrings;
             }
-            String strSeq = strAbsCodeWithGenOperator.replace(data.strOperatorForCerebro, strMutantOperator);
+            String strAbsCodeWithGenOperatorTrimmed = GetTrimmedSequence(strAbsCodeWithGenOperator, intSeqLen);
+            if (strAbsCodeWithGenOperatorTrimmed == null) {
+                arrayListWithDiffStrings.add(strSubsuming);
+                return arrayListWithDiffStrings;
+            }
+            /*if (strAbsCodeWithGenOperatorTrimmed.equals(strAbsCodeWithGenOperator) == false) {
+                System.out.println("\n" + strAbsCodeWithGenOperator + "\ntrimmed to\n" + strAbsCodeWithGenOperatorTrimmed + "\n");
+            }*/
+            String strSeq = strAbsCodeWithGenOperatorTrimmed.replace(data.strOperatorForCerebro, strMutantOperator);
             arrayListWithDiffStrings.add("-1");
             arrayListWithDiffStrings.add(strSeq);
             return arrayListWithDiffStrings;
@@ -3082,6 +3095,49 @@ public class util {
         } catch (Exception ex) {
             System.out.println("error at util.TraverseFolderForCerebroNoCSV()");
             ex.printStackTrace();
+        }
+    }
+
+    private String GetTrimmedSequence(String strAbsCodeWithGenOperator, Integer intSeqLen) {
+        try {
+            String strAbsCodeWithGenOperatorTrimmed = "";
+            String[] arrAbsCodeWithGenOperator = strAbsCodeWithGenOperator.split(Pattern.quote(" "));
+            int intIndexOperator = -1;
+            for (int i = 0; i < arrAbsCodeWithGenOperator.length - 1; i++) {
+                if (arrAbsCodeWithGenOperator[i].equals(data.strOperatorForCerebro)) {
+                    intIndexOperator = i;
+                    break;
+                }
+            }
+            if (intIndexOperator == -1) {
+                System.out.println("Could not process, unable to find " + data.strOperatorForCerebro + " in " + strAbsCodeWithGenOperator);
+                return null;
+            }
+            Boolean boolLimitReached = false;
+            strAbsCodeWithGenOperatorTrimmed = data.strOperatorForCerebro;
+            int i = 1;
+            while (boolLimitReached == false) {
+                if (intIndexOperator - i >= 0) {
+                    strAbsCodeWithGenOperatorTrimmed = arrAbsCodeWithGenOperator[intIndexOperator - i] + " " + strAbsCodeWithGenOperatorTrimmed;
+                }
+                if (intIndexOperator + i < arrAbsCodeWithGenOperator.length) {
+                    strAbsCodeWithGenOperatorTrimmed += " " + arrAbsCodeWithGenOperator[intIndexOperator + i];
+                }
+                int intLenAbsCodeWithGenOperatorTrimmed = strAbsCodeWithGenOperatorTrimmed.split(Pattern.quote(" ")).length;
+                if (intLenAbsCodeWithGenOperatorTrimmed >= intSeqLen || ((intIndexOperator - i < 0) && (intIndexOperator + i > arrAbsCodeWithGenOperator.length))) {
+                    boolLimitReached = true;
+                }
+                i++;
+            }
+            if (strAbsCodeWithGenOperatorTrimmed.length() <= 1) {
+                System.out.println("Could not process, resultant of trimming is" + strAbsCodeWithGenOperatorTrimmed + " while processing " + strAbsCodeWithGenOperator);
+                return null;
+            }
+            return strAbsCodeWithGenOperatorTrimmed;
+        } catch (Exception ex) {
+            System.out.println("error at util.GetTrimmedSequence()");
+            ex.printStackTrace();
+            return null;
         }
     }
 }

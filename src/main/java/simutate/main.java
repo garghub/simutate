@@ -21,7 +21,7 @@ public class main {
 //            args = new String[]{data.strGetFailingTests, "nmt"};
 //            args = new String[]{data.strProcessSubsumingMutantDiff, "nmt"};
 //            args = new String[]{data.strConsolidateChangedLinesDataByMutants, "ibir"};
-            args = new String[]{data.strTraversingMutantsForCerebro, "pit"}; //"codebert"
+            args = new String[]{data.strTraversingMutantsForCerebro, "ibir", "100"}; //"codebert" "pit" "ibir"
 //            args = new String[]{data.strTraversingAllMutantsForCerebroNoCSV, "codebert"};
 //             */
             if (args.length < 1) {

@@ -28,6 +28,7 @@ public class controller {
         try {
             String task = String.valueOf(args[0]);
             String technique;
+            Integer intSeqLen;
 
             String projectName = null;
             String projectWithPatchId = null;
@@ -224,10 +225,12 @@ public class controller {
                     if (args.length < 2) {
                         System.out.println("NOTE: for task \"" + data.strTraversingMutantsForCerebro + "\", please pass below as additional arguments and try again");
                         System.out.println("Additional 1. mutant directory technique suffix (e.g. nmt / codebert / ibir)");
+                        System.out.println("Additional 2. length of sequence (e.g. 50/100/200)");
                         break;
                     }
                     technique = String.valueOf(args[1]);
-                    TraverseMutantsForCerebro(technique);
+                    intSeqLen = Integer.valueOf(args[2]);
+                    TraverseMutantsForCerebro(technique, intSeqLen);
                     break;
                 case "traversingallmutantsforcerebronocsv":
                     if (args.length < 2) {
@@ -1339,7 +1342,7 @@ public class controller {
         }
     }
 
-    private void TraverseMutantsForCerebro(String strTechnique) throws Exception {
+    private void TraverseMutantsForCerebro(String strTechnique, Integer intSeqLen) throws Exception {
         try {
             data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
             dirProject = data.dirMutSrc;
@@ -1361,7 +1364,7 @@ public class controller {
                 default:
                     technique = strTechnique;
             }
-            arrayListAllMutants = objUtil.TraverseMutantsForCerebro(technique, arrayListAllMutants);
+            arrayListAllMutants = objUtil.TraverseMutantsForCerebro(technique, arrayListAllMutants, intSeqLen);
             if (arrayListAllMutants != null) {
                 String csvNewName = strToolSpecificMutantsDataCSVName.replace(".csv", "_processed.csv");
                 objUtil.WriteArrayListToCSV(data.dirCerebro, csvNewName, arrayListAllMutants);
@@ -1372,7 +1375,7 @@ public class controller {
             throw ex;
         }
     }
-    
+
     private void TraverseAllMutantsForCerebroNoCSV(String strTechnique) throws Exception {
         try {
             data.dirMutSrc = data.dirMutSrc + "-" + strTechnique;
